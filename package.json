@@ -1,0 +1,12 @@
+{
+  "name": "veyra-lantern-isles",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "esbuild frontend/app.js --bundle --minify --format=esm --target=es2020 --outfile=static/dist/app.js",
+    "test": "node --test tests/world.test.js"
+  },
+  "dependencies": { "three": "0.180.0" },
+  "devDependencies": { "esbuild": "0.25.10" }
+}
