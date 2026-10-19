@@ -8,7 +8,7 @@ import {walkable,buildings,BRIDGES} from '../frontend/layout.js';
 
 const world=JSON.parse(fs.readFileSync(new URL('../data/world.json',import.meta.url)));
 
-test('all thirty original character meshes have distinct definitions and finite geometry',()=>{
+test('all thirty-one original character meshes have distinct definitions and finite geometry',()=>{
   const signatures=new Set();
   for(const character of world.characters){
     const model=makeCharacter(character);
@@ -18,19 +18,19 @@ test('all thirty original character meshes have distinct definitions and finite 
     for(const value of [...bounds.min,...bounds.max])assert(Number.isFinite(value));
     signatures.add(JSON.stringify([character.color,character.accent,character.hair,character.silhouette,character.accessory]));
   }
-  assert.equal(signatures.size,30);
+  assert.equal(signatures.size,31);
 });
 
 test('world construction places every resident and bounds scene complexity',()=>{
   const fixture={world,scene:new THREE.Scene(),actors:[],obstacles:[]};
   WorldView.prototype.buildWorld.call(fixture);
-  assert.equal(fixture.actors.length,30);
-  assert.equal(new Set(fixture.actors.map(a=>a.userData.character.id)).size,30);
+  assert.equal(fixture.actors.length,31);
+  assert.equal(new Set(fixture.actors.map(a=>a.userData.character.id)).size,31);
   let meshes=0,triangles=0;
   fixture.scene.traverse(o=>{if(o.isMesh){meshes++;triangles+=(o.geometry.index?.count||o.geometry.attributes.position.count)/3;}});
   assert(meshes<2000,`${meshes} meshes`);
   assert(triangles<400000,`${triangles} triangles`);
-  console.log(`Scene: ${meshes} meshes, ${triangles} triangles, 30 residents`);
+  console.log(`Scene: ${meshes} meshes, ${triangles} triangles, 31 residents`);
 });
 
 test('walking ground connects all three islands while rejecting the void',()=>{

@@ -43,7 +43,8 @@ residents=[
  ('Tess Morrow','Forge historian','book','Determined, patient, sceptical','Tess found that the forge’s oldest inscription was a repair manual, not a victory record. She now searches for the makers whose names were polished off its walls.','Recover the signatures of Veyra’s first builders.'),
  ('Navi Kest','Signal maker','lantern','Upbeat, focused, considerate','Navi builds signal lanterns for people who cannot hear the harbour bells. Her lights became part of the islands’ shared language after a fog-bound festival.','Give every message a form everyone can understand.'),
  ('Elio Bramble','Ash gardener','staff','Calm, stubborn, nurturing','Elio grows herbs in warm volcanic ash. A single rooftop planter proved that Cinderpeak could feed flowers as well as fire.','Turn the old quarry into a public garden.'),
- ('Pippa Serein','Festival inventor','ribbon','Joyful, ambitious, thoughtful','Pippa makes mechanical decorations that visitors can repair together. Her favourite invention is a lantern bird powered by a dozen people turning one handle.','Create a festival that brings all three isles to one table.')
+ ('Pippa Serein','Festival inventor','ribbon','Joyful, ambitious, thoughtful','Pippa makes mechanical decorations that visitors can repair together. Her favourite invention is a lantern bird powered by a dozen people turning one handle.','Create a festival that brings all three isles to one table.'),
+ ('Aela Venn','Cloud gardener','flower','Gentle, adventurous, encouraging','Aela catches stray clouds in woven baskets and waters the harbour gardens with their rain. When a dry summer dimmed the lantern flowers, she followed a wandering cloud home and returned with seeds that bloom in mist.','Grow a floating garden where every traveller can rest.')
 ]
 
 def build():
@@ -51,18 +52,20 @@ def build():
     hair=['#393640','#f3dbb5','#61514c','#39393e','#b16849','#42565c','#b5a8aa','#453e52','#e1c6a4','#6d5546']
     characters=[]
     for index,(name,role,accessory,personality,story,quest) in enumerate(residents):
-        region=regions[index//10];n=index%10;angle=n*math.tau/10+.2
+        region=regions[index//10] if index<30 else regions[0]
+        n=index%10;angle=n*math.tau/10+.2 if index<30 else math.pi/10+.2
         characters.append(dict(id=name.lower().replace(' ','-'),name=name,role=role,region=region['id'],accessory=accessory,
             personality=personality,story=story,quest=quest,color=colors[n],accent=region['color'],hair=hair[n],
             skin=['#e7b992','#b77f60','#f0cfae','#8b5c46','#d5a27d'][index%5],silhouette=index%5,
             x=round(region['x']+13*math.cos(angle),3),z=round(region['z']+13*math.sin(angle),3)))
+    characters[-1].update(color='#759e96',hair='#eee1c5',accent='#e5a661',silhouette=1,skin='#d5a27d')
     world=dict(name='Veyra',subtitle='The Lantern Isles',regions=regions,characters=characters,
         history=[dict(year='Year 0',title='The Quiet Sundering',text='The old land rose into the sky, separating villages without erasing their memories. Nobody in Veyra agrees on what caused it. The first surviving records describe neighbours building ropes between their drifting gardens.'),
         dict(year='Year 18',title='A light in the cloud-sea',text='The people of Sunmere raised a lantern for anyone who could no longer see home. Its keeper promised that no arriving traveller would be turned away.'),
         dict(year='Year 41',title='The forest remembers',text='Glasswood’s listeners discovered that its leaves could replay the shapes of lost paths. They began cultivating bridges instead of cutting roads through the groves.'),
         dict(year='Year 67',title='The covenant of the hearth',text='Cinderpeak’s makers agreed that the great forge would mend and shelter, never conquer. They shared tools with the other isles and signed the covenant with the objects they repaired.'),
         dict(year='Year 103',title='Three isles, one sky',text='The first skybridges reconnected Sunmere, Glasswood and Cinderpeak. A festival of lanterns celebrated not an empire, but a promise to keep making room for one another.'),
-        dict(year='Today',title='The next chapter is a meeting',text='Thirty residents keep the isles alive in thirty different ways. Walk their paths, learn their stories, and decide which voices you want to return to.')])
+        dict(year='Today',title='The next chapter is a meeting',text='Thirty-one residents keep the isles alive in their own different ways. Walk their paths, learn their stories, and decide which voices you want to return to.')])
     path=Path(__file__).resolve().parents[1]/'data/world.json';path.parent.mkdir(parents=True,exist_ok=True)
     path.write_text(json.dumps(world,indent=2)+'\n')
 if __name__=='__main__':build()

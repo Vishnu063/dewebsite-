@@ -1,19 +1,31 @@
 # Veyra — The Lantern Isles
 
-A six-page website with an original explorable 3D world, **30 original characters**, real user accounts and private favourites. Built in the `dewebsite-` repository for your own deployment and DevOps practice. No hosting, Docker, infrastructure, or CI/CD configuration is included.
+A six-page website with an original explorable 3D world, **31 original characters**, real user accounts and private favourites. Built in the `dewebsite-` repository for your own deployment and DevOps practice. No hosting, Docker, infrastructure, or CI/CD configuration is included.
+
+## Meet Aela Venn
+
+![Aela Venn, an original cream-haired cloud gardener in a sage outfit and amber scarf, holding a flower](docs/characters/aela-venn.svg)
+
+**Cloud gardener · Sunmere** — Gentle, adventurous and encouraging.
+
+Aela catches stray clouds in woven baskets and waters the harbour gardens with their rain. When a dry summer dimmed the lantern flowers, she followed a wandering cloud home and returned with seeds that bloom in mist.
+
+**Her dream:** Grow a floating garden where every traveller can rest.
+
+This portrait is a static vector rendering of Aela's actual Three.js character model. Find her in the catalogue at `/characters/aela-venn`, or meet her in Sunmere. Regenerate the portrait with `node scripts/render-character.mjs` after building the character data.
 
 ## What is in the website
 
 | Page | Features |
 | --- | --- |
-| Explore `/` | Three connected floating islands, skybridges, buildings, landmarks, 30 residents, walking, orbit/zoom, region travel and a guided tour |
-| Characters `/characters` | All 30 profiles, original illustrated portraits, island filters, search and favourite buttons |
+| Explore `/` | Three connected floating islands, skybridges, buildings, landmarks, 31 residents, walking, orbit/zoom, region travel and a guided tour |
+| Characters `/characters` | All 31 profiles, original illustrated portraits, island filters, search and favourite buttons |
 | Character `/characters/ari-solwen` | Rotatable 3D model, individual story, personality, role, ambition and a link to their world location |
 | Chronicle `/history` | Three region histories and six eras of original world lore |
 | Favourites `/favourites` | A private, persistent collection for the signed-in account |
 | Account `/account` | Registration, sign-in, account summary and sign-out |
 
-**Sunmere** is a warm lantern harbour, **Glasswood** a forest that remembers lost paths, and **Cinderpeak** a crystal-and-forge settlement. Ten residents belong to each isle. Names, stories, palettes, silhouettes and role-specific props were created for this project, without intentionally copying existing anime characters. No existing anime footage, models, images, articles or voices are bundled.
+**Sunmere** is a warm lantern harbour, **Glasswood** a forest that remembers lost paths, and **Cinderpeak** a crystal-and-forge settlement. Sunmere has eleven residents; Glasswood and Cinderpeak each have ten. Names, stories, palettes, silhouettes and role-specific props were created for this project, without intentionally copying existing anime characters. No existing anime footage, models, images, articles or voices are bundled.
 
 The models use simple, stylised 3D shapes with distinct hair, clothing colours and accessories. This is a compact navigable browser world, **not a detailed anime game, an unlimited open world, or a skeletal-animation project**. Character cards use original SVG illustrations; their profile and world views use actual Three.js meshes.
 
@@ -83,8 +95,8 @@ npm run build
 
 Validation performed locally:
 
-- Eight backend tests: real registration/login/logout, password hashing and session rotation, wrong passwords, expired sessions, duplicate names, attempt limits, CSRF/origin rejection, persistent private favourites across separate users and app restarts, six page routes, malformed/oversized input and the 30-character catalogue.
-- Four scene/control tests: all 30 models have finite geometry and distinct design definitions; world construction places every resident; island/bridge connectivity, void boundaries and building collisions pass; guided tour start/pause works. The constructed scene has about 1,060 meshes and 115,000 triangles.
+- Eight backend tests: real registration/login/logout, password hashing and session rotation, wrong passwords, expired sessions, duplicate names, attempt limits, CSRF/origin rejection, persistent private favourites across separate users and app restarts, six page routes, malformed/oversized input and the 31-character catalogue.
+- Four scene/control tests: all 31 models have finite geometry and distinct design definitions; world construction places every resident; island/bridge connectivity, void boundaries and building collisions pass; guided tour start/pause works. The constructed scene has about 1,091 meshes and 120,000 triangles.
 - The production frontend bundle builds successfully at approximately 537 KiB before compression.
 
 **Verification limit:** this environment has no supported browser-control capability for visual/WebGL QA. The scene was constructed and checked using real Three.js objects, not rendered in a browser here. Desktop/mobile camera composition, touch interaction and actual graphics performance need a browser trial. No EC2 deployment, public account security audit or 8 GB client-memory benchmark is claimed.

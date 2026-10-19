@@ -159,7 +159,7 @@ export class WorldView {
     if(document.hidden)return;
     this.elapsed+=dt;
     if(this.destination){this.camera.position.lerp(this.destination.position,Math.min(1,dt*3));this.controls.target.lerp(this.destination.target,Math.min(1,dt*3));if(this.camera.position.distanceTo(this.destination.position)<.08)this.destination=null;}
-    if(this.touring&&this.elapsed>=this.nextStop){const c=this.world.characters[Math.floor(this.elapsed/6)%30];this.focusCharacter(c);this.options.onSelect?.(c);this.nextStop=this.elapsed+6;}
+    if(this.touring&&this.elapsed>=this.nextStop){const c=this.world.characters[Math.floor(this.elapsed/6)%this.world.characters.length];this.focusCharacter(c);this.options.onSelect?.(c);this.nextStop=this.elapsed+6;}
     if(this.walk&&!this.destination){
       const x=(this.keys.has('KeyD')||this.keys.has('ArrowRight')?1:0)-(this.keys.has('KeyA')||this.keys.has('ArrowLeft')?1:0)+this.touch.x;
       const z=(this.keys.has('KeyW')||this.keys.has('ArrowUp')?1:0)-(this.keys.has('KeyS')||this.keys.has('ArrowDown')?1:0)-this.touch.z;

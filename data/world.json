@@ -546,6 +546,23 @@
       "silhouette": 4,
       "x": 38.826,
       "z": 25.601
+    },
+    {
+      "id": "aela-venn",
+      "name": "Aela Venn",
+      "role": "Cloud gardener",
+      "region": "sunmere",
+      "accessory": "flower",
+      "personality": "Gentle, adventurous, encouraging",
+      "story": "Aela catches stray clouds in woven baskets and waters the harbour gardens with their rain. When a dry summer dimmed the lantern flowers, she followed a wandering cloud home and returned with seeds that bloom in mist.",
+      "quest": "Grow a floating garden where every traveller can rest.",
+      "color": "#759e96",
+      "accent": "#e5a661",
+      "hair": "#eee1c5",
+      "skin": "#d5a27d",
+      "silhouette": 1,
+      "x": -24.681,
+      "z": 6.393
     }
   ],
   "history": [
@@ -577,7 +594,7 @@
     {
       "year": "Today",
       "title": "The next chapter is a meeting",
-      "text": "Thirty residents keep the isles alive in thirty different ways. Walk their paths, learn their stories, and decide which voices you want to return to."
+      "text": "Thirty-one residents keep the isles alive in their own different ways. Walk their paths, learn their stories, and decide which voices you want to return to."
     }
   ]
 }

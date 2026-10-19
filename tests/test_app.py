@@ -93,16 +93,19 @@ class WebsiteTests(unittest.TestCase):
         self.assertEqual(self.client.get('/characters/not-a-real-person').status_code,404)
         self.assertEqual(self.client.get('/api/characters/not-a-real-person').status_code,404)
         self.assertEqual(self.client.get('/unknown-page').status_code,404)
-        self.assertEqual(self.client.get('/health').json,dict(status='ok',characters=30))
+        self.assertEqual(self.client.get('/health').json,dict(status='ok',characters=31))
 
     def test_original_world_inventory(self):
-        self.assertEqual(len(CHARACTERS),30)
-        self.assertEqual(len({c['name'] for c in CHARACTERS.values()}),30)
-        self.assertEqual(len({c['story'] for c in CHARACTERS.values()}),30)
+        self.assertEqual(len(CHARACTERS),31)
+        self.assertEqual(CHARACTERS['aela-venn']['role'],'Cloud gardener')
+        response=self.client.get('/characters/aela-venn')
+        self.assertEqual(response.status_code,200);response.close()
+        self.assertEqual(len({c['name'] for c in CHARACTERS.values()}),31)
+        self.assertEqual(len({c['story'] for c in CHARACTERS.values()}),31)
         self.assertEqual(len(WORLD['regions']),3)
-        for r in WORLD['regions']:self.assertEqual(sum(c['region']==r['id'] for c in CHARACTERS.values()),10)
+        for r in WORLD['regions']:self.assertEqual(sum(c['region']==r['id'] for c in CHARACTERS.values()),11 if r['id']=='sunmere' else 10)
         response=self.client.get('/api/world')
-        self.assertEqual(response.status_code,200);self.assertEqual(len(response.json['characters']),30)
+        self.assertEqual(response.status_code,200);self.assertEqual(len(response.json['characters']),31)
 
     def test_duplicate_user_and_unknown_favourite(self):
         self.register()
