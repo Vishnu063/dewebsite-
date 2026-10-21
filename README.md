@@ -2,19 +2,7 @@
 
 A six-page website with an original explorable 3D world, **51 characters: 31 original residents and 20 anime guests**, real user accounts and private favourites. Built in the `dewebsite-` repository for your own deployment and DevOps practice. No hosting, Docker, infrastructure, or CI/CD configuration is included.
 
-## Meet Aela Venn
-
-![Aela Venn, an original cream-haired cloud gardener in a sage outfit and amber scarf, holding a flower](docs/characters/aela-venn.svg)
-
-**Cloud gardener · Sunmere** — Gentle, adventurous and encouraging.
-
-Aela catches stray clouds in woven baskets and waters the harbour gardens with their rain. When a dry summer dimmed the lantern flowers, she followed a wandering cloud home and returned with seeds that bloom in mist.
-
-**Her dream:** Grow a floating garden where every traveller can rest.
-
-This portrait is a static vector rendering of Aela's actual Three.js character model. Find her in the catalogue at `/characters/aela-venn`, or meet her in Sunmere. Regenerate the portrait with `node scripts/render-character.mjs` after building the character data.
-
-## Naruto and One Piece — 20 new 3D models
+## Naruto and One Piece characters
 
 Open **Characters**, choose **Naruto** or **One Piece**, then select a character. Drag to rotate freely, scroll/pinch to zoom, or use **Front / Back / Left / Right / Top / Bottom**. Pause or enable auto rotation. The profile viewer has no ground plane hiding the underside. Use **Expand viewer** for a full-viewport view; **Close full screen** or Escape returns to the page. **Reset camera** restores the front view, and **Background** offers Studio, Light and Dark.
 
@@ -37,20 +25,20 @@ This quality/recovery update was compiled, but its runtime and browser behaviour
 - Luffy has smoother facial geometry, expressive eyes and grin, an open red vest, straw-hat weave and rim detail, hair tufts and sandals.
 - These refinements focus on Naruto and Luffy first. The remaining 18 keep their existing stylised designs with the new poses and animation.
 
-The images below are **static renders of those 3D meshes**. GitHub README displays the images; full interactive rotation is available in the running website. Naruto and One Piece characters/designs belong to their respective rights holders; this project is unaffiliated. The original Veyra cast is listed separately in the collection filter.
+Open a character profile in the running website for full interactive 3D viewing. Naruto and One Piece characters/designs belong to their respective rights holders; this project is unaffiliated. The original Veyra cast is listed separately in the collection filter.
 
 | Naruto | One Piece |
 | --- | --- |
-| **Naruto Uzumaki**<br>![Naruto Uzumaki 3D model](static/characters/naruto-uzumaki.svg) | **Monkey D. Luffy**<br>![Monkey D. Luffy 3D model](static/characters/monkey-d-luffy.svg) |
-| **Sasuke Uchiha**<br>![Sasuke Uchiha 3D model](static/characters/sasuke-uchiha.svg) | **Roronoa Zoro**<br>![Roronoa Zoro 3D model](static/characters/roronoa-zoro.svg) |
-| **Sakura Haruno**<br>![Sakura Haruno 3D model](static/characters/sakura-haruno.svg) | **Nami**<br>![Nami 3D model](static/characters/nami.svg) |
-| **Kakashi Hatake**<br>![Kakashi Hatake 3D model](static/characters/kakashi-hatake.svg) | **Usopp**<br>![Usopp 3D model](static/characters/usopp.svg) |
-| **Hinata Hyuga**<br>![Hinata Hyuga 3D model](static/characters/hinata-hyuga.svg) | **Sanji**<br>![Sanji 3D model](static/characters/sanji.svg) |
-| **Itachi Uchiha**<br>![Itachi Uchiha 3D model](static/characters/itachi-uchiha.svg) | **Tony Tony Chopper**<br>![Tony Tony Chopper 3D model](static/characters/tony-tony-chopper.svg) |
-| **Gaara**<br>![Gaara 3D model](static/characters/gaara.svg) | **Nico Robin**<br>![Nico Robin 3D model](static/characters/nico-robin.svg) |
-| **Shikamaru Nara**<br>![Shikamaru Nara 3D model](static/characters/shikamaru-nara.svg) | **Franky**<br>![Franky 3D model](static/characters/franky.svg) |
-| **Rock Lee**<br>![Rock Lee 3D model](static/characters/rock-lee.svg) | **Brook**<br>![Brook 3D model](static/characters/brook.svg) |
-| **Jiraiya**<br>![Jiraiya 3D model](static/characters/jiraiya.svg) | **Jinbe**<br>![Jinbe 3D model](static/characters/jinbe.svg) |
+| **Naruto Uzumaki** | **Monkey D. Luffy** |
+| **Sasuke Uchiha** | **Roronoa Zoro** |
+| **Sakura Haruno** | **Nami** |
+| **Kakashi Hatake** | **Usopp** |
+| **Hinata Hyuga** | **Sanji** |
+| **Itachi Uchiha** | **Tony Tony Chopper** |
+| **Gaara** | **Nico Robin** |
+| **Shikamaru Nara** | **Franky** |
+| **Rock Lee** | **Brook** |
+| **Jiraiya** | **Jinbe** |
 
 Rebuild the guest data and previews after changing their designs:
 
@@ -108,7 +96,7 @@ The frontend build is generated into ignored `static/dist/`. Rebuild it with `np
 - Click a resident to see their name, role and profile link.
 - **Walk the isles** enables the visitor avatar. Use **WASD / arrow keys** on a computer, or hold the onscreen direction buttons on touch devices. Drag to turn the camera. Skybridges connect every island; walking is bounded to islands/bridges and avoids buildings and central landmarks.
 - Region travel buttons move to a new island. **Take a tour** visits residents automatically; pause it or select a resident to stop.
-- Idle motion respects the browser's reduced-motion preference and can be paused. Rendering is capped at 30 frames per second with a limited pixel ratio.
+- Idle motion respects the browser's reduced-motion preference and can be paused. Standard quality caps rendering at 30 FPS; Low quality uses 20 FPS and lower resolution.
 - Use **Find in the world** from a character profile to locate that resident.
 
 Create your own username and password on Account. There is **no default account or password**. The heart on any card or profile saves that resident to your personal collection. Accounts and favourites remain after the server restarts.
@@ -129,7 +117,7 @@ The canonical authored content is `scripts/create_world.py`. It writes the commi
 python scripts/create_world.py
 ```
 
-`frontend/models.js` creates the character meshes and props; `frontend/world.js` creates the environment and controls. `frontend/layout.js` contains the shared walking and bridge calculations. The backend entry point is `app.py`, the app pages are in `frontend/app.js`, and styling is in `static/style.css`.
+`frontend/models.js` handles model selection and original residents. `frontend/anime-models.js` defines the anime guest designs; `frontend/character-animation.js` provides signature poses and procedural animation. `frontend/world.js` creates the environment, quality settings and camera controls. `frontend/layout.js` contains the shared walking and bridge calculations. The backend entry point is `app.py`, the app pages are in `frontend/app.js`, and styling is in `static/style.css`.
 
 ## Validation
 
@@ -139,15 +127,15 @@ npm test
 npm run build
 ```
 
-**Current viewer/animation update:** the frontend was compiled and model-preview assets regenerated. Tests and live desktop/mobile checks have not been run for this update. The included checks below were run on the preceding version; they must be rerun to validate the new model and animation changes.
+**Current viewer, animation and quality updates:** the frontend was compiled and model-preview assets regenerated. Tests and live desktop/mobile checks have not been run for this update. The included tests passed before the latest viewer changes; rerun them to validate the current version.
 
 Existing test coverage:
 
 - Nine backend tests (including all 20 guest routes, preview assets and favourites): real registration/login/logout, password hashing and session rotation, wrong passwords, expired sessions, duplicate names, attempt limits, CSRF/origin rejection, persistent private favourites across separate users and app restarts, six page routes, malformed/oversized input and the 51-character catalogue.
-- Scene/control tests also cover the exact 20-guest roster, distinct mesh geometry, six camera angles, portrait assets and collision-free guest placement. Baseline checks: all 51 models have finite geometry and distinct design definitions; world construction places every resident; island/bridge connectivity, void boundaries and building collisions pass; guided tour start/pause works. Scene complexity remains bounded by the automated mesh/triangle budget. Browser/WebGL appearance and touch interaction have not been tested in this environment; the README previews are rendered offline from the actual geometry.
+- Scene/control tests also cover the exact 20-guest roster, distinct mesh geometry, six camera angles, portrait assets and collision-free guest placement. The suite includes finite geometry, scene construction and complexity budgets, island/bridge connectivity, building collisions and guided-tour controls. Browser/WebGL appearance and touch interaction have not been tested in this environment; catalogue previews are generated offline from the actual geometry.
 - The updated production frontend bundle compiles to approximately 567 KiB before compression.
 
-**Verification limit:** this environment has no supported browser-control capability for visual/WebGL QA. Previous scene checks used real Three.js objects. This animation update has not been validated in a browser. Desktop/mobile camera composition, touch interaction and actual graphics performance need a browser trial. No EC2 deployment, public account security audit or 8 GB client-memory benchmark is claimed.
+**Verification limit:** this environment has no supported browser-control capability for visual/WebGL QA. Previous scene checks used real Three.js objects. The current viewer, animation and quality updates have not been validated in a browser. Desktop/mobile camera composition, touch interaction and actual graphics performance need a browser trial. No EC2 deployment, public account security audit or 8 GB client-memory benchmark is claimed.
 
 ## Credits and licence
 
