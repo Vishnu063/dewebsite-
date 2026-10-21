@@ -16,9 +16,18 @@ This portrait is a static vector rendering of Aela's actual Three.js character m
 
 ## Naruto and One Piece — 20 new 3D models
 
-Open **Characters**, choose **Naruto** or **One Piece**, then select a character. Drag to rotate freely, scroll/pinch to zoom, or use **Front / Back / Left / Right / Top / Bottom**. Pause or enable auto rotation. The profile viewer has no ground plane hiding the underside.
+Open **Characters**, choose **Naruto** or **One Piece**, then select a character. Drag to rotate freely, scroll/pinch to zoom, or use **Front / Back / Left / Right / Top / Bottom**. Pause or enable auto rotation. The profile viewer has no ground plane hiding the underside. Use **Expand viewer** for a full-viewport view; **Close full screen** or Escape returns to the page. **Reset camera** restores the front view, and **Background** offers Studio, Light and Dark.
 
-These are **simple stylised, unofficial fan models**, not detailed replicas or rigged game assets. Each has a distinct costume and geometry: Naruto's whiskers and headband, Gaara's rear gourd, Zoro's three swords, Usopp's long nose, Chopper's antlers, Franky's mechanical arms, Brook's skeleton and Jinbe's wide fish-man form.
+These are **stylised, unofficial fan models** with articulated mesh groups, not detailed replicas or imported game rigs. Each has a distinct costume and geometry: Naruto's whiskers and headband, Gaara's rear gourd, Zoro's three swords, Usopp's long nose, Chopper's antlers, Franky's mechanical arms, Brook's skeleton and Jinbe's wide fish-man form.
+
+### Poses, animation and lead-character detail
+
+- All 20 anime guests have an individual **Signature pose** and a **Neutral stance** option. Their articulated head/arm/leg groups use the same meshes in the world and profile viewer.
+- **Animation** offers Breathe & blink, Walk in place, and Still. Brook has eye sockets and does not blink. Walking is a procedural preview loop; it does not move the character across the world or provide gameplay.
+- Animation and camera rotation have separate controls. Reduced-motion preferences start the viewer with animation and rotation off; select a mode to enable them.
+- Naruto has smoother facial geometry, blue irises, extra hair detail, jacket panels and seams, a leaf-style headband detail, shin wraps, sandals and a waist pouch.
+- Luffy has smoother facial geometry, expressive eyes and grin, an open red vest, straw-hat weave and rim detail, hair tufts and sandals.
+- These refinements focus on Naruto and Luffy first. The remaining 18 keep their existing stylised designs with the new poses and animation.
 
 The images below are **static renders of those 3D meshes**. GitHub README displays the images; full interactive rotation is available in the running website. Naruto and One Piece characters/designs belong to their respective rights holders; this project is unaffiliated. The original Veyra cast is listed separately in the collection filter.
 
@@ -56,7 +65,7 @@ npm run build
 
 **Sunmere** is a warm lantern harbour, **Glasswood** a forest that remembers lost paths, and **Cinderpeak** a crystal-and-forge settlement. The original cast has eleven residents in Sunmere and ten each in Glasswood and Cinderpeak. Twenty additional Naruto and One Piece fan characters visit the isles on a separate inner ring. The original cast and world lore remain unchanged. All meshes are built in code; no downloaded anime models, footage, textures or voices are bundled.
 
-The models use simple, stylised 3D shapes with distinct hair, clothing colours and accessories. This is a compact navigable browser world, **not a detailed anime game, an unlimited open world, or a skeletal-animation project**. Original-character cards use SVG illustrations; anime cards use static snapshots of their actual meshes. Profile and world views render real Three.js geometry.
+The models use simple, stylised 3D shapes with distinct hair, clothing colours and accessories. This is a compact navigable browser world, **not a detailed anime game or an unlimited open world**; animation uses lightweight articulated groups rather than imported skeletal rigs. Original-character cards use SVG illustrations; anime cards use static snapshots of their actual meshes. Profile and world views render real Three.js geometry.
 
 ## Run locally
 
@@ -122,13 +131,15 @@ npm test
 npm run build
 ```
 
-Validation performed locally:
+**Current viewer/animation update:** the frontend was compiled and model-preview assets regenerated. Tests and live desktop/mobile checks have not been run for this update. The included checks below were run on the preceding version; they must be rerun to validate the new model and animation changes.
+
+Existing test coverage:
 
 - Nine backend tests (including all 20 guest routes, preview assets and favourites): real registration/login/logout, password hashing and session rotation, wrong passwords, expired sessions, duplicate names, attempt limits, CSRF/origin rejection, persistent private favourites across separate users and app restarts, six page routes, malformed/oversized input and the 51-character catalogue.
 - Scene/control tests also cover the exact 20-guest roster, distinct mesh geometry, six camera angles, portrait assets and collision-free guest placement. Baseline checks: all 51 models have finite geometry and distinct design definitions; world construction places every resident; island/bridge connectivity, void boundaries and building collisions pass; guided tour start/pause works. Scene complexity remains bounded by the automated mesh/triangle budget. Browser/WebGL appearance and touch interaction have not been tested in this environment; the README previews are rendered offline from the actual geometry.
-- The production frontend bundle builds successfully at approximately 537 KiB before compression.
+- The updated production frontend bundle compiles to approximately 564 KiB before compression.
 
-**Verification limit:** this environment has no supported browser-control capability for visual/WebGL QA. The scene was constructed and checked using real Three.js objects, not rendered in a browser here. Desktop/mobile camera composition, touch interaction and actual graphics performance need a browser trial. No EC2 deployment, public account security audit or 8 GB client-memory benchmark is claimed.
+**Verification limit:** this environment has no supported browser-control capability for visual/WebGL QA. Previous scene checks used real Three.js objects. This animation update has not been validated in a browser. Desktop/mobile camera composition, touch interaction and actual graphics performance need a browser trial. No EC2 deployment, public account security audit or 8 GB client-memory benchmark is claimed.
 
 ## Credits and licence
 

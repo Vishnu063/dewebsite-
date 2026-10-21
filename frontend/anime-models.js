@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import {piece} from './primitives.js';
+import {piece,material as pieceMaterial} from './primitives.js';
 
 const ink='#242a36',ivory='#f0ead9',steel='#bec7ce',gold='#e5bd60';
 function part(root,name,kind,color,position,scale,rotation){
@@ -149,6 +149,60 @@ function jinbe(root,c){
  for(let n=0;n<7;n++){const a=n*2.4;part(root,'kimono-pattern','crystal',c.accent,[.54*Math.cos(a),.5+(n%3)*.4,.45*Math.sin(a)],[.14,.19,.035],[0,-a,0]);}
 }
 
+function refineLead(root,c){
+ if(!['naruto','luffy'].includes(c.design))return;
+ // Smooth facial geometry only on these two leads; keep the world lightweight.
+ for(const name of ['head','face']){
+  const old=root.getObjectByName(name);if(!old)continue;
+  const replacement=part(root,name,'smoothSphere',c.skin,old.position.toArray(),old.scale.toArray());
+  replacement.quaternion.copy(old.quaternion);root.remove(old);
+ }
+ for(const child of [...root.children])if(['eye','eye-light','smile'].includes(child.name))root.remove(child);
+ for(const side of [-1,1]){
+  part(root,'eye-white','smoothSphere',ivory,[side*.145,2.64,.397],[.087,.077,.028]);
+  part(root,'iris','smoothSphere',c.design==='naruto'?'#5796bd':ink,[side*.145,2.64,.423],[.046,.059,.015]);
+  part(root,'eye','smoothSphere',ink,[side*.145,2.64,.435],[.021,.04,.009]);
+  part(root,'eye-light','sphere','#ffffff',[side*.145-.013,2.663,.445],[.012,.016,.006]);
+  line(root,'eyebrow',c.hair,[side*.08,2.75,.39],[side*.23,2.77,.36],.018);
+  const shoe=root.children.filter(n=>n.name==='shoe'&&Math.sign(n.position.x)===side)[0];
+  if(shoe){shoe.scale.y=.08;shoe.material=pieceMaterial('#564c46');}
+  part(root,'sandal-strap','box',ink,[side*.2,.21,.12],[.32,.055,.13]);
+  for(let n=0;n<3;n++)part(root,'toe','sphere',c.skin,[side*.2+(n-1)*.07,.19,.28],[.04,.045,.05]);
+ }
+ if(c.design==='naruto'){
+  for(const old of [...root.children])if(old.name==='black-shoulders')root.remove(old);
+  for(const side of [-1,1]){
+   part(root,'black-jacket-panel','box',c.accent,[side*.24,1.86,.276],[.3,.4,.055]);
+   part(root,'shoulder-seam','sphere',c.accent,[side*.44,1.93,0],[.16,.16,.21]);
+   part(root,'jacket-pocket','box','#df7627',[side*.24,1.28,.285],[.2,.16,.04]);
+   part(root,'pant-wrap','cylinder',ivory,[side*.2,.56,0],[.158,.22,.16]);
+   for(const y of [.49,.56,.63])part(root,'wrap-seam','ring','#c7c3b8',[side*.2,y,0],[.16,.16,.012],[Math.PI/2,0,0]);
+  }
+  for(const forearm of root.children.filter(n=>n.name==='forearm'))forearm.material=pieceMaterial(c.color);
+  part(root,'jacket-collar','cylinder',c.accent,[0,2.1,0],[.29,.17,.24]);
+  part(root,'zip-pull','ring',steel,[0,1.97,.325],[.025,.045,.01]);
+  part(root,'belt-pouch','box','#786452',[.36,1.03,-.25],[.24,.3,.2]);
+  line(root,'smile','#784a3e',[-.085,2.43,.388],[.085,2.43,.388],.015);
+  const plate=root.getObjectByName('headband-plate');
+  const emblem=root.getObjectByName('engraved-emblem');if(emblem){emblem.scale.set(.06,.048,.018);}
+  if(plate){const group=plate.parent;line(group,'leaf-stem','#596571',[-.04,-.02,.096],[-.12,-.05,.096],.009);line(group,'leaf-tip','#596571',[.045,.01,.096],[.08,.05,.096],.009);}
+  for(let n=0;n<4;n++)part(root,'fringe-spike','cone',c.hair,[-.28+n*.18,3.05,.18],[.09,.36,.13],[.28,0,(n-1.5)*-.15]);
+ }else{
+  // Bare upper arms and a red open vest; a larger grin and woven straw hat.
+  for(const sleeve of root.children.filter(n=>n.name==='sleeve'))sleeve.material=pieceMaterial(c.skin);
+  for(const side of [-1,1]){
+   part(root,'vest-panel','sphere',c.color,[side*.29,1.66,.18],[.14,.53,.18]);
+   for(const y of [1.35,1.58,1.81])part(root,'vest-button','sphere',gold,[side*.18,y,.327],[.025,.025,.016]);
+  }
+  part(root,'smile','smoothSphere','#754a41',[0,2.42,.378],[.15,.085,.035]);
+  part(root,'grin-teeth','smoothSphere',ivory,[0,2.441,.405],[.132,.048,.014]);
+  for(const side of [-1,1])line(root,'cheek-crease','#b78066',[side*.22,2.47,.36],[side*.27,2.49,.34],.012);
+  for(let n=0;n<5;n++)part(root,'straw-weave','ring','#b59455',[0,3.077+n*.022,-.035],[.435-n*.018,.36-n*.014,.006],[Math.PI/2,0,0]);
+  part(root,'straw-rim','ring','#b69455',[0,3.078,0],[.66,.52,.012],[Math.PI/2,0,0]);
+  for(const side of [-1,1])for(let n=0;n<2;n++)part(root,'hair-tuft','cone',c.hair,[side*(.3+n*.05),2.83-n*.1,.1],[.09,.23,.11],[.1,0,-side*.8]);
+ }
+}
+
 export function makeAnimeCharacter(c){
  const root=new THREE.Group();root.name=c.id;root.userData.character=c;
  if(c.design==='chopper'){chopper(root,c);return root;}
@@ -286,5 +340,6 @@ export function makeAnimeCharacter(c){
   part(root,'metal-nose','cone',steel,[0,2.56,.44],[.06,.16,.05],[Math.PI/2,0,0]);break;
  default:throw new Error(`Unknown anime design: ${c.design}`);
  }
+ refineLead(root,c);
  return root;
 }

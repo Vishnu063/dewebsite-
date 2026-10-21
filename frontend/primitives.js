@@ -3,7 +3,8 @@ import * as THREE from 'three';
 const geometries = new Map(), materials = new Map();
 function geometry(kind) {
   if (!geometries.has(kind)) {
-    const value = kind==='sphere' ? new THREE.SphereGeometry(1,12,8)
+    const value = kind==='smoothSphere' ? new THREE.SphereGeometry(1,24,16)
+      : kind==='sphere' ? new THREE.SphereGeometry(1,12,8)
       : kind==='cylinder' ? new THREE.CylinderGeometry(1,1,1,12)
       : kind==='cone' ? new THREE.ConeGeometry(1,1,8)
       : kind==='crystal' ? new THREE.OctahedronGeometry(1)

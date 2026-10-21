@@ -3,12 +3,14 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { makeCharacter, piece, material } from './models.js';
 import { BRIDGES, buildings, walkable } from './layout.js';
 import {profileCamera} from './profile-camera.js';
+import {animateCharacter,setCharacterPose} from './character-animation.js';
 
 export class WorldView {
   constructor(host, world, options={}) {
     this.host=host;this.world=world;this.options=options;this.profile=!!options.profile;
     this.keys=new Set();this.touch={x:0,z:0};this.disposed=false;this.walk=false;
     this.motion=!window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    this.animationMode=this.motion?'idle':'still';
     this.scene=new THREE.Scene();this.scene.background=new THREE.Color(this.profile?'#e7e8de':'#c5d4d5');
     this.scene.fog=new THREE.Fog(this.profile?'#e7e8de':'#c5d4d5',this.profile?35:160,this.profile?70:330);
     this.camera=new THREE.PerspectiveCamera(42,1,.1,500);
@@ -27,7 +29,7 @@ export class WorldView {
     this.actors=[];this.obstacles=[];
     if(this.profile) {
       const actor=makeCharacter(options.character);this.scene.add(actor);this.actors.push(actor);
-      this.profileBounds=new THREE.Box3().setFromObject(actor);
+      this.profileBounds=new THREE.Box3().setFromObject(actor).expandByScalar(.18);
       this.profileAngle='front';
       this.camera.position.set(4.2,2.7,5.8);
       this.controls.autoRotate=this.motion;this.controls.autoRotateSpeed=.65;
@@ -125,10 +127,30 @@ export class WorldView {
     this.camera.aspect=width/height;this.camera.fov=this.profile?42:(width/height<.85?62:42);this.camera.updateProjectionMatrix();this.renderer.setSize(width,height,false);
     if(this.profile)this.setProfileAngle(this.profileAngle,false);
   }
+  setProfilePose(pose) {
+    if(!this.profile)return;
+    const actor=this.actors[0];setCharacterPose(actor,pose);
+    this.profileBounds=new THREE.Box3().setFromObject(actor).expandByScalar(.18);
+    this.setProfileAngle(this.profileAngle,false);
+  }
+  setProfileAnimation(mode) {
+    if(!['still','idle','walk'].includes(mode))throw new Error('Unknown animation');
+    this.animationMode=mode;
+    if(this.profile){const actor=this.actors[0];setCharacterPose(actor,actor.userData.rig?.pose||'neutral');}
+  }
+  setProfileBackground(name) {
+    if(!this.profile)return;
+    const colors={studio:'#e7e8de',white:'#f8f8f5',night:'#202c39'};
+    if(!colors[name])throw new Error('Unknown background');
+    this.scene.background.set(colors[name]);this.scene.fog.color.set(colors[name]);
+    this.renderer.setClearColor(this.scene.background);
+  }
   setProfileAngle(angle,pause=true) {
     if(!this.profile)return;
     const view=profileCamera(this.profileBounds,angle,this.camera.aspect,this.camera.fov);
     this.profileAngle=angle;this.destination=null;
+    // Flush previous orbit inertia before applying an exact camera preset.
+    const damping=this.controls.enableDamping;this.controls.enableDamping=false;this.controls.update();this.controls.enableDamping=damping;
     this.camera.position.copy(view.position);this.controls.target.copy(view.target);
     this.controls.minDistance=Math.max(.8,view.distance*.32);this.controls.maxDistance=view.distance*2.5;
     if(pause){this.motion=false;this.controls.autoRotate=false;}
@@ -185,7 +207,10 @@ export class WorldView {
         this.camera.position.add(offset);this.controls.target.add(offset);
       }
     }
-    if(this.motion)this.actors.forEach((a,i)=>{a.rotation.z=Math.sin(this.elapsed*1.1+i)*.025;});
+    this.actors.forEach((a,i)=>{
+      if(a.userData.rig)animateCharacter(a,this.elapsed+i*.27,this.animationMode,this.profile||this.motion);
+      else a.rotation.z=this.motion?Math.sin(this.elapsed*1.1+i)*.025:0;
+    });
     this.controls.update(dt);this.renderer.render(this.scene,this.camera);
   }
   dispose() {

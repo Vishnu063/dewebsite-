@@ -1,5 +1,6 @@
 import { WorldView } from './world.js';
 import {PROFILE_ANGLES} from './profile-camera.js';
+import {SIGNATURE_POSES} from './character-animation.js';
 
 const main=document.getElementById('main');
 const state={world:null,user:null,csrf:'',favourites:new Set(),view:null,region:'all',series:'all',query:'',accountMode:'login',pending:null,route:0};
@@ -81,13 +82,40 @@ function characterPage(id){
   const c=state.world.characters.find(c=>c.id===id);if(!c){main.innerHTML='<div class="page"><h1>This resident is not in the atlas.</h1><a class="button" href="/characters">Back to characters</a></div>';return;}
   const r=region(c.region),saved=state.favourites.has(c.id);
   document.title=`${c.name} — Veyra`;
-  main.innerHTML=`<div class="page"><a class="back" href="/characters">← All characters</a><div class="detail-grid"><div class="model-wrap"><div id="character-model" class="model-view"></div><span class="model-label">3D MODEL · DRAG IN ANY DIRECTION · SCROLL / PINCH TO ZOOM</span><div class="model-controls" role="group" aria-label="3D camera views">${PROFILE_ANGLES.map(angle=>`<button class="button small" data-angle="${angle}" aria-pressed="${angle==='front'}">${angle[0].toUpperCase()+angle.slice(1)}</button>`).join('')}<button class="button small" id="model-motion">Auto rotate</button></div></div><article class="detail-info"><span class="eyebrow">${esc(c.series||r.name)} · ${c.series?'ANIME GUEST':'THE LANTERN ISLES'}</span><h1>${esc(c.name)}</h1><p class="role">${esc(c.role)}</p><p class="personality">${esc(c.personality)}</p><h2>${c.series?'About this character':'A life between the clouds'}</h2><p>${esc(c.story)}</p><div class="quest"><span class="eyebrow">A WISH FOR TOMORROW</span><p>${esc(c.quest)}</p></div><div class="actions"><button class="button primary" data-favourite="${c.id}">${saved?'♥ Saved to favourites':'♡ Save to favourites'}</button><a class="button" href="/?meet=${c.id}">Find in the world ↗</a></div><p class="footnote">${c.series?'Unofficial fan interpretation from '+esc(c.series)+'.':'An original resident of Veyra.'} A stylised procedural 3D model, with geometry on every side. These models are not rigged or animated replicas of the anime.</p></article></div><section class="subsection"><div class="page-head"><div><span class="eyebrow">NEIGHBOURS &amp; KINDRED SPIRITS</span><h2>More voices from ${esc(r.name)}.</h2></div><a class="button small" href="/characters">Meet everyone ↗</a></div><div class="catalogue">${state.world.characters.filter(x=>x.region===c.region&&x.id!==id).slice(0,4).map(card).join('')}</div></section>${footer()}</div>`;
+  main.innerHTML=`<div class="page"><a class="back" href="/characters">← All characters</a><div class="detail-grid"><div class="model-wrap"><div id="character-model" class="model-view"></div><span class="model-label">3D MODEL · DRAG IN ANY DIRECTION · SCROLL / PINCH TO ZOOM</span><div class="model-controls" role="group" aria-label="3D camera views">${PROFILE_ANGLES.map(angle=>`<button class="button small" data-angle="${angle}" aria-pressed="${angle==='front'}">${angle[0].toUpperCase()+angle.slice(1)}</button>`).join('')}<button class="button small" id="model-motion">Auto rotate</button><button class="button small" id="model-reset">Reset camera</button><button class="button small" id="model-fullscreen" aria-expanded="false">Expand viewer</button></div><div class="model-settings">${c.series?`<label>Pose <select id="model-pose"><option value="signature">${esc(SIGNATURE_POSES[c.design]?.label||'Signature')}</option><option value="neutral">Neutral stance</option></select></label><label>Animation <select id="model-animation"><option value="idle">Breathe &amp; blink</option><option value="walk">Walk in place</option><option value="still">Still</option></select></label>`:''}<label>Background <select id="model-background"><option value="studio">Studio</option><option value="white">Light</option><option value="night">Dark</option></select></label></div></div><article class="detail-info"><span class="eyebrow">${esc(c.series||r.name)} · ${c.series?'ANIME GUEST':'THE LANTERN ISLES'}</span><h1>${esc(c.name)}</h1><p class="role">${esc(c.role)}</p><p class="personality">${esc(c.personality)}</p><h2>${c.series?'About this character':'A life between the clouds'}</h2><p>${esc(c.story)}</p><div class="quest"><span class="eyebrow">A WISH FOR TOMORROW</span><p>${esc(c.quest)}</p></div><div class="actions"><button class="button primary" data-favourite="${c.id}">${saved?'♥ Saved to favourites':'♡ Save to favourites'}</button><a class="button" href="/?meet=${c.id}">Find in the world ↗</a></div><p class="footnote">${c.series?'Unofficial fan interpretation from '+esc(c.series)+'.':'An original resident of Veyra.'} A stylised procedural 3D model, with geometry on every side. Anime guests have articulated mesh groups, signature poses and procedural animation. These remain stylised fan models, without cinematic facial animation or downloaded game rigs.</p></article></div><section class="subsection"><div class="page-head"><div><span class="eyebrow">NEIGHBOURS &amp; KINDRED SPIRITS</span><h2>More voices from ${esc(r.name)}.</h2></div><a class="button small" href="/characters">Meet everyone ↗</a></div><div class="catalogue">${state.world.characters.filter(x=>x.region===c.region&&x.id!==id).slice(0,4).map(card).join('')}</div></section>${footer()}</div>`;
   mountWorld(document.getElementById('character-model'),{profile:true,character:c});
   const motion=document.getElementById('model-motion');
   const refreshMotion=()=>{motion.textContent=state.view?.motion?'Pause rotation':'Auto rotate';motion.setAttribute('aria-pressed',!!state.view?.motion);};
   refreshMotion();
   document.querySelectorAll('[data-angle]').forEach(button=>{button.disabled=!state.view;button.onclick=()=>{state.view?.setProfileAngle(button.dataset.angle);document.querySelectorAll('[data-angle]').forEach(b=>b.setAttribute('aria-pressed',b===button));refreshMotion();};});
   motion.disabled=!state.view;motion.onclick=()=>{state.view?.toggleMotion();refreshMotion();};
+  const reset=document.getElementById('model-reset');reset.disabled=!state.view;
+  reset.onclick=()=>{state.view?.setProfileAngle('front');document.querySelectorAll('[data-angle]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.angle==='front'));refreshMotion();};
+  const pose=document.getElementById('model-pose'),animation=document.getElementById('model-animation'),background=document.getElementById('model-background');
+  if(pose){pose.disabled=!state.view;pose.onchange=()=>state.view?.setProfilePose(pose.value);}
+  if(animation){animation.disabled=!state.view;animation.value=state.view?.animationMode||'still';animation.onchange=()=>state.view?.setProfileAnimation(animation.value);}
+  background.disabled=!state.view;background.onchange=()=>state.view?.setProfileBackground(background.value);
+  const wrap=document.querySelector('.model-wrap'),expand=document.getElementById('model-fullscreen');
+  let expanded=false,previousOverflow='';
+  const setExpanded=value=>{
+    if(value===expanded)return;expanded=value;
+    wrap.classList.toggle('viewer-expanded',value);expand.textContent=value?'Close full screen':'Expand viewer';expand.setAttribute('aria-expanded',value);
+    if(value){previousOverflow=document.body.style.overflow;document.body.style.overflow='hidden';wrap.setAttribute('role','dialog');wrap.setAttribute('aria-modal','true');wrap.setAttribute('aria-label',c.name+' 3D viewer');expand.focus();}
+    else{document.body.style.overflow=previousOverflow;wrap.removeAttribute('role');wrap.removeAttribute('aria-modal');wrap.removeAttribute('aria-label');if(expand.isConnected)expand.focus();}
+  };
+  expand.onclick=()=>setExpanded(!expanded);
+  const viewerKeys=e=>{
+    if(!expanded)return;
+    if(e.key==='Escape'){e.preventDefault();setExpanded(false);}
+    if(e.key==='Tab'){
+      const focusable=[...wrap.querySelectorAll('button:not(:disabled),select:not(:disabled),canvas[tabindex]')],first=focusable[0],last=focusable.at(-1);
+      if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
+      else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
+    }
+  };
+  document.addEventListener('keydown',viewerKeys);
+  state.viewerCleanup=()=>{setExpanded(false);document.removeEventListener('keydown',viewerKeys);};
+
 }
 
 function historyPage(){
@@ -111,7 +139,7 @@ function accountPage(){
 }
 
 function render(){
-  state.route++;state.view?.dispose();state.view=null;nav();document.title='Veyra — The Lantern Isles';
+  state.viewerCleanup?.();state.viewerCleanup=null;state.route++;state.view?.dispose();state.view=null;nav();document.title='Veyra — The Lantern Isles';
   const path=location.pathname,params=new URLSearchParams(location.search);
   if(path==='/'){worldPage(params.get('meet'));if(params.get('region'))state.view?.travel(params.get('region'));}
   else if(path==='/characters')catalogue();
