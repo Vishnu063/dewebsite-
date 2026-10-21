@@ -1,0 +1,12 @@
+{
+  "id": "naruto",
+  "triangles": 28265,
+  "mesh_objects": 41,
+  "bytes": 778956,
+  "textures": 0,
+  "skinned_meshes": 1,
+  "source": "scripts/art/build_benchmarks.py",
+  "blender": "4.2.0",
+  "version": "Shippuden standard jacket",
+  "status": "benchmark-awaiting-art-review"
+}

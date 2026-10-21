@@ -1,0 +1,12 @@
+{
+  "id": "luffy",
+  "triangles": 34919,
+  "mesh_objects": 39,
+  "bytes": 952908,
+  "textures": 0,
+  "skinned_meshes": 2,
+  "source": "scripts/art/build_benchmarks.py",
+  "blender": "4.2.0",
+  "version": "East Blue sleeveless red vest",
+  "status": "benchmark-awaiting-art-review"
+}

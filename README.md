@@ -2,6 +2,22 @@
 
 A six-page website with an original explorable 3D world, **51 characters: 31 original residents and 20 anime guests**, real user accounts and private favourites. Built in the `dewebsite-` repository for your own deployment and DevOps practice. No hosting, Docker, infrastructure, or CI/CD configuration is included.
 
+## Artwork upgrade — first review batch
+
+**Status: Naruto and Luffy are a two-character benchmark awaiting art review. The other 18 anime characters have not been rebuilt in this batch.** See [the artwork review and reference/outfit plan](docs/art-review/README.md) for the actual front/side/back model renders, known limitations and remaining batches. This README contains no images.
+
+The benchmark pair uses Blender-authored GLB meshes with shaped faces, clothing surfaces, hair locks, fingers, feet and separately articulated elbows/knees. The website loads these assets for their profiles and world instances. They are stylised fan models, not approved replicas or finished production rigs. Knee/elbow regions use weighted meshes, with other parts attached to articulated groups. The original 31 Veyra characters are unchanged.
+
+Blender is an offline authoring tool here; EC2 only serves the exported files. Regenerate the pair with Blender 4.2 and Pillow available on the authoring machine:
+
+```bash
+blender -b -t 4 --python scripts/art/build_benchmarks.py -- --render
+python3 scripts/art/compose_review.py
+npm run build
+```
+
+The exported pair totals approximately 1.65 MiB, with no external textures. Detailed scene/file counts and performance tradeoffs are in the review document. Browser performance, likeness and animation are unverified; tests remain with the project owner.
+
 ## Naruto and One Piece characters
 
 Open **Characters**, choose **Naruto** or **One Piece**, then select a character. Drag to rotate freely, scroll/pinch to zoom, or use **Front / Back / Left / Right / Top / Bottom**. Pause or enable auto rotation. The profile viewer has no ground plane hiding the underside. Use **Expand viewer** for a full-viewport view; **Close full screen** or Escape returns to the page. **Reset camera** restores the front view, and **Background** offers Studio, Light and Dark.
@@ -59,7 +75,7 @@ npm run build
 | Favourites `/favourites` | A private, persistent collection for the signed-in account |
 | Account `/account` | Registration, sign-in, account summary and sign-out |
 
-**Sunmere** is a warm lantern harbour, **Glasswood** a forest that remembers lost paths, and **Cinderpeak** a crystal-and-forge settlement. The original cast has eleven residents in Sunmere and ten each in Glasswood and Cinderpeak. Twenty additional Naruto and One Piece fan characters visit the isles on a separate inner ring. The original cast and world lore remain unchanged. All meshes are built in code; no downloaded anime models, footage, textures or voices are bundled.
+**Sunmere** is a warm lantern harbour, **Glasswood** a forest that remembers lost paths, and **Cinderpeak** a crystal-and-forge settlement. The original cast has eleven residents in Sunmere and ten each in Glasswood and Cinderpeak. Twenty additional Naruto and One Piece fan characters visit the isles on a separate inner ring. The original cast and world lore remain unchanged. Meshes are authored in project code, including the Blender benchmark exports; no downloaded anime models, footage, textures or voices are bundled.
 
 The models use simple, stylised 3D shapes with distinct hair, clothing colours and accessories. This is a compact navigable browser world, **not a detailed anime game or an unlimited open world**; animation uses lightweight articulated groups rather than imported skeletal rigs. Original-character cards use SVG illustrations; anime cards use static snapshots of their actual meshes. Profile and world views render real Three.js geometry.
 
@@ -127,15 +143,15 @@ npm test
 npm run build
 ```
 
-**Current viewer, animation and quality updates:** the frontend was compiled and model-preview assets regenerated. Tests and live desktop/mobile checks have not been run for this update. The included tests passed before the latest viewer changes; rerun them to validate the current version.
+**Current artwork benchmark and viewer updates:** the frontend was compiled and model-preview assets regenerated. Tests and live desktop/mobile checks have not been run for this update. The included tests passed before the latest viewer and artwork changes; rerun them to validate the current version.
 
 Existing test coverage:
 
 - Nine backend tests (including all 20 guest routes, preview assets and favourites): real registration/login/logout, password hashing and session rotation, wrong passwords, expired sessions, duplicate names, attempt limits, CSRF/origin rejection, persistent private favourites across separate users and app restarts, six page routes, malformed/oversized input and the 51-character catalogue.
 - Scene/control tests also cover the exact 20-guest roster, distinct mesh geometry, six camera angles, portrait assets and collision-free guest placement. The suite includes finite geometry, scene construction and complexity budgets, island/bridge connectivity, building collisions and guided-tour controls. Browser/WebGL appearance and touch interaction have not been tested in this environment; catalogue previews are generated offline from the actual geometry.
-- The updated production frontend bundle compiles to approximately 567 KiB before compression.
+- The updated production frontend bundle compiles to approximately 649 KiB before compression.
 
-**Verification limit:** this environment has no supported browser-control capability for visual/WebGL QA. Previous scene checks used real Three.js objects. The current viewer, animation and quality updates have not been validated in a browser. Desktop/mobile camera composition, touch interaction and actual graphics performance need a browser trial. No EC2 deployment, public account security audit or 8 GB client-memory benchmark is claimed.
+**Verification limit:** tests and live-browser checks are deferred to the project owner. Blender renders show the authored neutral geometry; WebGL appearance, animation deformation and actual desktop/mobile performance remain unverified. No 8 GB memory benchmark or likeness approval is claimed.
 
 ## Credits and licence
 
