@@ -8,6 +8,7 @@ import {animateCharacter,setCharacterPose} from './character-animation.js';
 export class WorldView {
   constructor(host, world, options={}) {
     this.host=host;this.world=world;this.options=options;this.profile=!!options.profile;
+    try {
     this.keys=new Set();this.touch={x:0,z:0};this.disposed=false;this.walk=false;
     this.motion=!window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     this.animationMode=this.motion?'idle':'still';
@@ -15,7 +16,7 @@ export class WorldView {
     this.scene.fog=new THREE.Fog(this.profile?'#e7e8de':'#c5d4d5',this.profile?35:160,this.profile?70:330);
     this.camera=new THREE.PerspectiveCamera(42,1,.1,500);
     this.renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:'low-power'});
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5));
+    this.setQuality(options.quality||'standard');
     this.renderer.outputColorSpace=THREE.SRGBColorSpace;
     this.renderer.setClearColor(this.scene.background);
     this.renderer.domElement.setAttribute('aria-label',this.profile?'Rotatable 3D character model':'Interactive three-dimensional Lantern Isles world');
@@ -58,11 +59,20 @@ export class WorldView {
       if(['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code)){e.preventDefault();this.keys.add(e.code);}
     };
     this.keyup=e=>this.keys.delete(e.code);this.blur=()=>{this.keys.clear();this.touch={x:0,z:0};};
+    this.contextLost=e=>{e.preventDefault();this.options.onError?.(new Error('graphics-context-lost'));};
+    this.renderer.domElement.addEventListener('webglcontextlost',this.contextLost);
     this.renderer.domElement.addEventListener('pointerdown',this.down);this.renderer.domElement.addEventListener('pointerup',this.up);
     window.addEventListener('keydown',this.keydown);window.addEventListener('keyup',this.keyup);window.addEventListener('blur',this.blur);
     this.observer=new ResizeObserver(()=>this.resize());this.observer.observe(host);this.resize();
     this.last=performance.now();this.elapsed=0;this.nextStop=0;
     this.animate=this.animate.bind(this);this.frame=requestAnimationFrame(this.animate);
+    } catch(error) {this.dispose();throw error;}
+  }
+
+  setQuality(quality) {
+    if(!['low','standard'].includes(quality))throw new Error('Unknown render quality');
+    this.quality=quality;this.frameInterval=1000/(quality==='low'?20:30);
+    this.renderer.setPixelRatio(quality==='low'?Math.min(window.devicePixelRatio||1,.85):Math.min(window.devicePixelRatio||1,1.5));
   }
 
   buildWorld() {
@@ -188,7 +198,7 @@ export class WorldView {
   animate(now) {
     if(this.disposed)return;
     this.frame=requestAnimationFrame(this.animate);
-    if(now-this.last<1000/30)return;
+    if(now-this.last<this.frameInterval)return;
     const dt=Math.min((now-this.last)/1000,.05);this.last=now;
     if(document.hidden)return;
     this.elapsed+=dt;
@@ -211,13 +221,22 @@ export class WorldView {
       if(a.userData.rig)animateCharacter(a,this.elapsed+i*.27,this.animationMode,this.profile||this.motion);
       else a.rotation.z=this.motion?Math.sin(this.elapsed*1.1+i)*.025:0;
     });
-    this.controls.update(dt);this.renderer.render(this.scene,this.camera);
+    try {
+      this.controls.update(dt);this.renderer.render(this.scene,this.camera);
+      if(!this.ready){this.ready=true;this.options.onReady?.();}
+    }catch(error){this.options.onError?.(error);}
+
   }
   dispose() {
-    this.disposed=true;cancelAnimationFrame(this.frame);this.observer.disconnect();this.controls.dispose();
-    window.removeEventListener('keydown',this.keydown);window.removeEventListener('keyup',this.keyup);window.removeEventListener('blur',this.blur);
-    this.renderer.domElement.removeEventListener('pointerdown',this.down);this.renderer.domElement.removeEventListener('pointerup',this.up);
-    this.scene.traverse(o=>{o.geometry?.dispose();if(o.material){for(const m of Array.isArray(o.material)?o.material:[o.material])m.dispose();}});
-    this.renderer.dispose();this.renderer.domElement.remove();
+    if(this.disposed)return;
+    this.disposed=true;cancelAnimationFrame(this.frame);this.observer?.disconnect();this.controls?.dispose();
+    if(this.keydown)window.removeEventListener('keydown',this.keydown);
+    if(this.keyup)window.removeEventListener('keyup',this.keyup);
+    if(this.blur)window.removeEventListener('blur',this.blur);
+    if(this.down)this.renderer?.domElement.removeEventListener('pointerdown',this.down);
+    if(this.up)this.renderer?.domElement.removeEventListener('pointerup',this.up);
+    if(this.contextLost)this.renderer?.domElement.removeEventListener('webglcontextlost',this.contextLost);
+    this.scene?.traverse(o=>{o.geometry?.dispose();if(o.material){for(const m of Array.isArray(o.material)?o.material:[o.material])m.dispose();}});
+    this.renderer?.dispose();this.renderer?.domElement.remove();
   }
 }

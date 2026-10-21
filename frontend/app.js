@@ -3,7 +3,7 @@ import {PROFILE_ANGLES} from './profile-camera.js';
 import {SIGNATURE_POSES} from './character-animation.js';
 
 const main=document.getElementById('main');
-const state={world:null,user:null,csrf:'',favourites:new Set(),view:null,region:'all',series:'all',query:'',accountMode:'login',pending:null,route:0};
+const state={world:null,user:null,csrf:'',favourites:new Set(),view:null,region:'all',series:'all',query:'',accountMode:'login',pending:null,route:0,quality:window.matchMedia('(max-width: 700px)').matches?'low':'standard'};
 const esc=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const region=id=>state.world.regions.find(r=>r.id===id);
 let toastTimer;
@@ -30,26 +30,47 @@ function nav(){
   document.getElementById('account-link').textContent=state.user?`${state.user.username} ↗`:'Sign in ↗';
 }
 
-function mountWorld(host,options={}) {
-  try{state.view=new WorldView(host,state.world,options);}
-  catch(error){
-    console.error('3D viewer unavailable',error);
-    host.innerHTML=`<div class="fallback"><span class="eyebrow">THE WORLD IS STILL HERE</span><h2>Your browser could not open the 3D view.</h2><p>Try a browser with WebGL 2 enabled, or meet all residents in the catalogue.</p><a class="button primary" href="/characters">Meet the characters ↗</a></div>`;
-    if(!options.profile)document.querySelectorAll('[data-world-control]').forEach(b=>b.disabled=true);
-  }
+function qualityControl(){return `<label class="quality-control">Quality <select data-quality aria-label="3D render quality"><option value="standard" ${state.quality==='standard'?'selected':''}>Standard</option><option value="low" ${state.quality==='low'?'selected':''}>Low (lighter)</option></select></label>`;}
+
+async function mountWorld(host,options={}) {
+  const route=state.route;let view;
+  host.setAttribute('aria-busy','true');
+  host.innerHTML='<div class="viewer-status" role="status"><span class="loading-ring" aria-hidden="true"></span><strong>Preparing your 3D view…</strong><p>Building the model and starting graphics.</p></div>';
+  const showError=error=>{
+    if(route!==state.route||!host.isConnected)return;
+    console.error('3D viewer unavailable',error);view?.dispose();if(state.view===view)state.view=null;
+    host.setAttribute('aria-busy','false');
+    const lost=error.message==='graphics-context-lost';
+    host.innerHTML=`<div class="viewer-status viewer-error" role="alert"><h2>${lost?'The graphics connection was lost.':'The 3D view could not open.'}</h2><p>${lost?'Your browser may have paused graphics to free memory. Retry with lighter settings.':'Try lighter settings. If this continues, check that WebGL 2 and hardware acceleration are available in your browser.'}</p><button class="button primary" data-retry-viewer>Retry in low quality</button><a class="button" href="/characters">Browse characters ↗</a></div>`;
+    document.querySelectorAll('[data-world-control],.model-controls button:not(#model-fullscreen),.model-settings select,[data-move]').forEach(b=>b.disabled=true);
+    host.querySelector('[data-retry-viewer]').onclick=()=>{state.quality='low';render();};
+  };
+  // Let the loading status paint before synchronous mesh construction.
+  await new Promise(resolve=>requestAnimationFrame(()=>setTimeout(resolve,0)));
+  if(route!==state.route||!host.isConnected)return;
+  try{
+    view=new WorldView(host,state.world,{...options,quality:state.quality,onReady:()=>{
+      if(route!==state.route||!host.isConnected)return;
+      host.setAttribute('aria-busy','false');host.querySelector('.viewer-status')?.remove();
+    },onError:showError});
+    state.view=view;
+    document.querySelectorAll('[data-quality]').forEach(select=>{select.value=state.quality;select.onchange=()=>{state.quality=select.value;state.view?.setQuality(select.value);};});
+  }catch(error){showError(error);}
 }
 
-function worldPage(focusId){
-  main.innerHTML=`<section class="world-shell" aria-label="Explore Veyra"><div id="world-canvas" class="world-canvas"></div><div class="world-intro"><span class="eyebrow">AN ORIGINAL WORLD TO EXPLORE</span><h1>Somewhere<br>above the ordinary.</h1><p>Three islands. ${state.world.characters.length} residents.<br>A thousand small reasons to stay a while.</p><span class="pill">The Lantern Isles · Veyra</span></div><div class="world-top"><button class="button small" id="overview" data-world-control>↗ Full world</button><button class="button small" id="motion" data-world-control>Idle motion</button></div><aside class="resident-panel" id="resident-panel" hidden></aside><div id="dpad" class="dpad" aria-label="Touch movement" hidden><button data-move="0,-1" aria-label="Move forward">↑</button><button data-move="-1,0" aria-label="Move left">←</button><button data-move="0,1" aria-label="Move backward">↓</button><button data-move="1,0" aria-label="Move right">→</button></div><div class="world-help" id="world-help">Drag to orbit · Scroll or pinch to zoom<br>Click a resident to meet them</div><div class="world-footer"><div class="world-tools"><button id="walk" class="button primary" data-world-control>Walk the isles ↗</button><button id="tour" class="button" data-world-control>Take a tour</button><a class="button" href="/characters">Meet all ${state.world.characters.length}</a></div><span class="world-counter">THREE ISLES · ONE SHARED SKY</span><div class="travel"><span class="eyebrow">TRAVEL SOMEWHERE NEW</span>${state.world.regions.map(r=>`<button data-travel="${r.id}" data-world-control><span class="dot" style="--color:${r.color}"></span>${r.name}<span aria-hidden="true">↗</span></button>`).join('')}</div></div></section>`;
+async function worldPage(focusId,travelId){
+  main.innerHTML=`<section class="world-shell" aria-label="Explore Veyra"><div id="world-canvas" class="world-canvas"></div><div class="world-intro"><span class="eyebrow">AN ORIGINAL WORLD TO EXPLORE</span><h1>Somewhere<br>above the ordinary.</h1><p>Three islands. ${state.world.characters.length} residents.<br>A thousand small reasons to stay a while.</p><span class="pill">The Lantern Isles · Veyra</span></div><div class="world-top">${qualityControl()}<button class="button small" id="overview" data-world-control>↗ Full world</button><button class="button small" id="motion" data-world-control>Idle motion</button></div><aside class="resident-panel" id="resident-panel" hidden></aside><div id="dpad" class="dpad" aria-label="Touch movement" hidden><button data-move="0,-1" aria-label="Move forward">↑</button><button data-move="-1,0" aria-label="Move left">←</button><button data-move="0,1" aria-label="Move backward">↓</button><button data-move="1,0" aria-label="Move right">→</button></div><div class="world-help" id="world-help">Drag to orbit · Scroll or pinch to zoom<br>Click a resident to meet them</div><div class="world-footer"><div class="world-tools"><button id="walk" class="button primary" data-world-control>Walk the isles ↗</button><button id="tour" class="button" data-world-control>Take a tour</button><a class="button" href="/characters">Meet all ${state.world.characters.length}</a></div><span class="world-counter">THREE ISLES · ONE SHARED SKY</span><div class="travel"><span class="eyebrow">TRAVEL SOMEWHERE NEW</span>${state.world.regions.map(r=>`<button data-travel="${r.id}" data-world-control><span class="dot" style="--color:${r.color}"></span>${r.name}<span aria-hidden="true">↗</span></button>`).join('')}</div></div></section>`;
   const select=c=>{
     const box=document.getElementById('resident-panel');if(!box)return;box.hidden=false;
     box.innerHTML=`<button class="close" id="close-resident" aria-label="Close character">×</button><div class="portrait">${portrait(c)}</div><span class="eyebrow">${esc(region(c.region).name)} · RESIDENT</span><h2>${esc(c.name)}</h2><p>${esc(c.role)}<br>${esc(c.personality)}</p><a href="/characters/${c.id}" class="button primary">Read their story ↗</a><button class="button" data-favourite="${c.id}">${state.favourites.has(c.id)?'♥ Saved to favourites':'♡ Save to favourites'}</button>`;
     document.getElementById('close-resident').onclick=()=>{box.hidden=true;if(state.view)state.view.touring=false;document.getElementById('tour').textContent='Take a tour';};
   };
-  mountWorld(document.getElementById('world-canvas'),{onSelect:select,onWalk:value=>{
+  const worldHost=document.getElementById('world-canvas');
+  await mountWorld(worldHost,{onSelect:select,onWalk:value=>{
     document.getElementById('walk').textContent=value?'Return to orbit':'Walk the isles ↗';document.getElementById('dpad').hidden=!value;
     document.getElementById('world-help').innerHTML=value?'WASD / arrow keys or touch pad to walk<br>Drag to turn the camera · Bridges connect the isles':'Drag to orbit · Scroll or pinch to zoom<br>Click a resident to meet them';
   }});
+  if(!worldHost.isConnected)return;
   document.getElementById('overview').onclick=()=>{state.view?.overview();document.getElementById('tour').textContent='Take a tour';};
   document.getElementById('walk').onclick=()=>{state.view?.setWalking(!state.view.walk);state.view?.renderer.domElement.focus();document.getElementById('tour').textContent='Take a tour';};
   document.getElementById('tour').onclick=()=>{if(state.view)document.getElementById('tour').textContent=state.view.tour()?'Pause tour':'Take a tour';};
@@ -59,6 +80,7 @@ function worldPage(focusId){
     button.addEventListener('pointerdown',e=>{e.preventDefault();button.setPointerCapture(e.pointerId);const [x,z]=button.dataset.move.split(',').map(Number);if(state.view)state.view.touch={x,z};});
     const stop=()=>{if(state.view)state.view.touch={x:0,z:0};};button.addEventListener('pointerup',stop);button.addEventListener('lostpointercapture',stop);button.addEventListener('pointercancel',stop);
   });
+  if(travelId)state.view?.travel(travelId);
   if(focusId){const c=state.world.characters.find(c=>c.id===focusId);if(c&&state.view){state.view.focusCharacter(c);select(c);}}
 }
 
@@ -78,12 +100,14 @@ function catalogue(favourites=false){
   document.querySelectorAll('[data-region]').forEach(b=>b.onclick=()=>{state.region=b.dataset.region;update();});update();
 }
 
-function characterPage(id){
+async function characterPage(id){
   const c=state.world.characters.find(c=>c.id===id);if(!c){main.innerHTML='<div class="page"><h1>This resident is not in the atlas.</h1><a class="button" href="/characters">Back to characters</a></div>';return;}
   const r=region(c.region),saved=state.favourites.has(c.id);
   document.title=`${c.name} — Veyra`;
-  main.innerHTML=`<div class="page"><a class="back" href="/characters">← All characters</a><div class="detail-grid"><div class="model-wrap"><div id="character-model" class="model-view"></div><span class="model-label">3D MODEL · DRAG IN ANY DIRECTION · SCROLL / PINCH TO ZOOM</span><div class="model-controls" role="group" aria-label="3D camera views">${PROFILE_ANGLES.map(angle=>`<button class="button small" data-angle="${angle}" aria-pressed="${angle==='front'}">${angle[0].toUpperCase()+angle.slice(1)}</button>`).join('')}<button class="button small" id="model-motion">Auto rotate</button><button class="button small" id="model-reset">Reset camera</button><button class="button small" id="model-fullscreen" aria-expanded="false">Expand viewer</button></div><div class="model-settings">${c.series?`<label>Pose <select id="model-pose"><option value="signature">${esc(SIGNATURE_POSES[c.design]?.label||'Signature')}</option><option value="neutral">Neutral stance</option></select></label><label>Animation <select id="model-animation"><option value="idle">Breathe &amp; blink</option><option value="walk">Walk in place</option><option value="still">Still</option></select></label>`:''}<label>Background <select id="model-background"><option value="studio">Studio</option><option value="white">Light</option><option value="night">Dark</option></select></label></div></div><article class="detail-info"><span class="eyebrow">${esc(c.series||r.name)} · ${c.series?'ANIME GUEST':'THE LANTERN ISLES'}</span><h1>${esc(c.name)}</h1><p class="role">${esc(c.role)}</p><p class="personality">${esc(c.personality)}</p><h2>${c.series?'About this character':'A life between the clouds'}</h2><p>${esc(c.story)}</p><div class="quest"><span class="eyebrow">A WISH FOR TOMORROW</span><p>${esc(c.quest)}</p></div><div class="actions"><button class="button primary" data-favourite="${c.id}">${saved?'♥ Saved to favourites':'♡ Save to favourites'}</button><a class="button" href="/?meet=${c.id}">Find in the world ↗</a></div><p class="footnote">${c.series?'Unofficial fan interpretation from '+esc(c.series)+'.':'An original resident of Veyra.'} A stylised procedural 3D model, with geometry on every side. Anime guests have articulated mesh groups, signature poses and procedural animation. These remain stylised fan models, without cinematic facial animation or downloaded game rigs.</p></article></div><section class="subsection"><div class="page-head"><div><span class="eyebrow">NEIGHBOURS &amp; KINDRED SPIRITS</span><h2>More voices from ${esc(r.name)}.</h2></div><a class="button small" href="/characters">Meet everyone ↗</a></div><div class="catalogue">${state.world.characters.filter(x=>x.region===c.region&&x.id!==id).slice(0,4).map(card).join('')}</div></section>${footer()}</div>`;
-  mountWorld(document.getElementById('character-model'),{profile:true,character:c});
+  main.innerHTML=`<div class="page"><a class="back" href="/characters">← All characters</a><div class="detail-grid"><div class="model-wrap"><div id="character-model" class="model-view"></div><span class="model-label">3D MODEL · DRAG IN ANY DIRECTION · SCROLL / PINCH TO ZOOM</span><div class="model-controls" role="group" aria-label="3D camera views">${PROFILE_ANGLES.map(angle=>`<button class="button small" data-angle="${angle}" aria-pressed="${angle==='front'}">${angle[0].toUpperCase()+angle.slice(1)}</button>`).join('')}<button class="button small" id="model-motion">Auto rotate</button><button class="button small" id="model-reset">Reset camera</button><button class="button small" id="model-fullscreen" aria-expanded="false">Expand viewer</button></div><div class="model-settings">${qualityControl()}${c.series?`<label>Pose <select id="model-pose"><option value="signature">${esc(SIGNATURE_POSES[c.design]?.label||'Signature')}</option><option value="neutral">Neutral stance</option></select></label><label>Animation <select id="model-animation"><option value="idle">Breathe &amp; blink</option><option value="walk">Walk in place</option><option value="still">Still</option></select></label>`:''}<label>Background <select id="model-background"><option value="studio">Studio</option><option value="white">Light</option><option value="night">Dark</option></select></label></div></div><article class="detail-info"><span class="eyebrow">${esc(c.series||r.name)} · ${c.series?'ANIME GUEST':'THE LANTERN ISLES'}</span><h1>${esc(c.name)}</h1><p class="role">${esc(c.role)}</p><p class="personality">${esc(c.personality)}</p><h2>${c.series?'About this character':'A life between the clouds'}</h2><p>${esc(c.story)}</p><div class="quest"><span class="eyebrow">A WISH FOR TOMORROW</span><p>${esc(c.quest)}</p></div><div class="actions"><button class="button primary" data-favourite="${c.id}">${saved?'♥ Saved to favourites':'♡ Save to favourites'}</button><a class="button" href="/?meet=${c.id}">Find in the world ↗</a></div><p class="footnote">${c.series?'Unofficial fan interpretation from '+esc(c.series)+'.':'An original resident of Veyra.'} A stylised procedural 3D model, with geometry on every side. Anime guests have articulated mesh groups, signature poses and procedural animation. These remain stylised fan models, without cinematic facial animation or downloaded game rigs.</p></article></div><section class="subsection"><div class="page-head"><div><span class="eyebrow">NEIGHBOURS &amp; KINDRED SPIRITS</span><h2>More voices from ${esc(r.name)}.</h2></div><a class="button small" href="/characters">Meet everyone ↗</a></div><div class="catalogue">${state.world.characters.filter(x=>x.region===c.region&&x.id!==id).slice(0,4).map(card).join('')}</div></section>${footer()}</div>`;
+  const modelHost=document.getElementById('character-model');
+  await mountWorld(modelHost,{profile:true,character:c});
+  if(!modelHost.isConnected)return;
   const motion=document.getElementById('model-motion');
   const refreshMotion=()=>{motion.textContent=state.view?.motion?'Pause rotation':'Auto rotate';motion.setAttribute('aria-pressed',!!state.view?.motion);};
   refreshMotion();
@@ -141,7 +165,7 @@ function accountPage(){
 function render(){
   state.viewerCleanup?.();state.viewerCleanup=null;state.route++;state.view?.dispose();state.view=null;nav();document.title='Veyra — The Lantern Isles';
   const path=location.pathname,params=new URLSearchParams(location.search);
-  if(path==='/'){worldPage(params.get('meet'));if(params.get('region'))state.view?.travel(params.get('region'));}
+  if(path==='/'){worldPage(params.get('meet'),params.get('region'));}
   else if(path==='/characters')catalogue();
   else if(path.startsWith('/characters/'))characterPage(decodeURIComponent(path.slice(12)));
   else if(path==='/history')historyPage();

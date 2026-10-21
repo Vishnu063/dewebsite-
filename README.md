@@ -20,6 +20,14 @@ Open **Characters**, choose **Naruto** or **One Piece**, then select a character
 
 These are **stylised, unofficial fan models** with articulated mesh groups, not detailed replicas or imported game rigs. Each has a distinct costume and geometry: Naruto's whiskers and headband, Gaara's rear gourd, Zoro's three swords, Usopp's long nose, Chopper's antlers, Franky's mechanical arms, Brook's skeleton and Jinbe's wide fish-man form.
 
+### Lighter rendering and viewer recovery
+
+**Quality** is available in both the world and character viewer. Standard mode caps rendering at 30 FPS and pixel ratio at 1.5. Low mode caps rendering at 20 FPS and pixel ratio at 0.85 to reduce graphics work. Screens up to 700 CSS pixels wide start in Low mode. The choice carries between pages for the current session; it is not saved across reloads. Models and camera controls remain available in either mode; actual performance depends on the device.
+
+A loading message stays visible until the first frame renders. If graphics cannot start, rendering fails, or the browser loses its graphics context, the viewer shows recovery guidance and **Retry in low quality**. Retry reloads the current page's viewer; the catalogue remains available. Navigating away cancels a pending viewer start and disposes its resources.
+
+This quality/recovery update was compiled, but its runtime and browser behaviour have not been tested.
+
 ### Poses, animation and lead-character detail
 
 - All 20 anime guests have an individual **Signature pose** and a **Neutral stance** option. Their articulated head/arm/leg groups use the same meshes in the world and profile viewer.
@@ -137,7 +145,7 @@ Existing test coverage:
 
 - Nine backend tests (including all 20 guest routes, preview assets and favourites): real registration/login/logout, password hashing and session rotation, wrong passwords, expired sessions, duplicate names, attempt limits, CSRF/origin rejection, persistent private favourites across separate users and app restarts, six page routes, malformed/oversized input and the 51-character catalogue.
 - Scene/control tests also cover the exact 20-guest roster, distinct mesh geometry, six camera angles, portrait assets and collision-free guest placement. Baseline checks: all 51 models have finite geometry and distinct design definitions; world construction places every resident; island/bridge connectivity, void boundaries and building collisions pass; guided tour start/pause works. Scene complexity remains bounded by the automated mesh/triangle budget. Browser/WebGL appearance and touch interaction have not been tested in this environment; the README previews are rendered offline from the actual geometry.
-- The updated production frontend bundle compiles to approximately 564 KiB before compression.
+- The updated production frontend bundle compiles to approximately 567 KiB before compression.
 
 **Verification limit:** this environment has no supported browser-control capability for visual/WebGL QA. Previous scene checks used real Three.js objects. This animation update has not been validated in a browser. Desktop/mobile camera composition, touch interaction and actual graphics performance need a browser trial. No EC2 deployment, public account security audit or 8 GB client-memory benchmark is claimed.
 
