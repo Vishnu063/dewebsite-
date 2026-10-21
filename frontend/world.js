@@ -30,7 +30,7 @@ export class WorldView {
     this.actors=[];this.obstacles=[];
     if(this.profile) {
       const actor=makeCharacter(options.character);this.scene.add(actor);this.actors.push(actor);
-      this.profileBounds=new THREE.Box3().setFromObject(actor).expandByScalar(.18);
+      this.updateProfileBounds(actor);
       this.profileAngle='front';
       this.camera.position.set(4.2,2.7,5.8);
       this.controls.autoRotate=this.motion;this.controls.autoRotateSpeed=.65;
@@ -137,10 +137,15 @@ export class WorldView {
     this.camera.aspect=width/height;this.camera.fov=this.profile?42:(width/height<.85?62:42);this.camera.updateProjectionMatrix();this.renderer.setSize(width,height,false);
     if(this.profile)this.setProfileAngle(this.profileAngle,false);
   }
+  updateProfileBounds(actor) {
+    actor.updateMatrixWorld(true);
+    actor.traverse(node=>{if(node.isSkinnedMesh){node.skeleton.update();node.computeBoundingBox();node.computeBoundingSphere();}});
+    this.profileBounds=new THREE.Box3().setFromObject(actor).expandByScalar(.18);
+  }
   setProfilePose(pose) {
     if(!this.profile)return;
     const actor=this.actors[0];setCharacterPose(actor,pose);
-    this.profileBounds=new THREE.Box3().setFromObject(actor).expandByScalar(.18);
+    this.updateProfileBounds(actor);
     this.setProfileAngle(this.profileAngle,false);
   }
   setProfileAnimation(mode) {

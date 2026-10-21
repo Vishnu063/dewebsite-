@@ -1,11 +1,12 @@
 import * as THREE from 'three';
 import {piece} from './primitives.js';
 import {makeAnimeCharacter} from './anime-models.js';
-import {articulateCharacter} from './character-animation.js';
+import {articulateCharacter,setCharacterPose} from './character-animation.js';
+import {makeBenchmarkCharacter} from './benchmark-models.js';
 export {piece, material} from './primitives.js';
 
 export function makeCharacter(c) {
-  if(c.series)return articulateCharacter(makeAnimeCharacter(c));
+  if(c.series){const detailed=makeBenchmarkCharacter(c);if(detailed){setCharacterPose(detailed,'signature');return detailed;}return articulateCharacter(makeAnimeCharacter(c));}
   const root=new THREE.Group();root.userData.character=c;
   const dark='#343645',white='#f6f1dd';
   // Compact, original toy-like proportions. Every resident has their own

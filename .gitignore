@@ -7,3 +7,8 @@ static/dist/
 .env
 *.sqlite*
 .DS_Store
+
+# Intermediate camera renders; composed artwork review sheets are tracked.
+docs/art-review/*-front.png
+docs/art-review/*-side.png
+docs/art-review/*-back.png

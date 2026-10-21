@@ -51,9 +51,21 @@ export function setCharacterPose(model,pose){
  const rig=model.userData.rig;if(!rig)return;
  if(!['signature','neutral'].includes(pose))throw new Error('Unknown character pose');
  const spec=pose==='signature'?SIGNATURE_POSES[model.userData.character.design]:null;
+ if(rig.detailed){
+  rig.elbows.forEach(e=>e.rotation.set(0,0,0));rig.knees.forEach(k=>k.rotation.set(0,0,0));
+ }
  rig.pose=pose;rig.visual.position.y=0;rig.visual.rotation.set(0,0,0);rig.head.rotation.set(0,0,spec?.head||0);
  rig.arms.forEach((a,i)=>a.rotation.set(...(spec?.arms?.[i]||[0,0,0])));
  rig.legs.forEach((l,i)=>l.rotation.set(0,0,spec?.legs?.[i]||0));
+ if(rig.detailed&&pose==='signature'){
+  if(model.userData.character.design==='naruto'){
+   rig.arms[0].rotation.set(-.65,-.12,.35);rig.arms[1].rotation.set(-.65,.12,-.35);
+   rig.elbows[0].rotation.set(-1.1,0,.12);rig.elbows[1].rotation.set(-1.1,0,-.12);
+  }else{
+   rig.arms[0].rotation.set(0,0,-.08);rig.arms[1].rotation.set(0,0,2.6);
+   rig.elbows[1].rotation.z=.85;
+  }
+ }
  rig.eyes.forEach(e=>{e.node.scale.y=e.y;});
  if(rig.breathing)rig.breathing.scale.y=rig.breathing.userData.restHeight||rig.breathing.scale.y;
 }
@@ -66,6 +78,7 @@ export function animateCharacter(model,time,mode='idle',enabled=true){
  if(walking){
   rig.arms.forEach((arm,i)=>{arm.rotation.set(Math.sin(phase+i*Math.PI)*.42,0,i===0?-.08:.08);});
   rig.legs.forEach((leg,i)=>{leg.rotation.x=Math.sin(phase+i*Math.PI)*.4;leg.rotation.z=0;});
+  if(rig.detailed){rig.elbows.forEach(e=>e.rotation.x=-.14);rig.knees.forEach((k,i)=>k.rotation.x=Math.max(0,-Math.sin(phase+i*Math.PI))*.55);}
  }else{
   rig.head.rotation.y=Math.sin(time*.6)*.025;
   if(rig.breathing){const b=rig.breathing;b.userData.restHeight??=b.scale.y;b.scale.y=b.userData.restHeight*(1+Math.sin(time*1.8)*.009);}

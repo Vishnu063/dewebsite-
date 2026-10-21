@@ -1,6 +1,7 @@
 import { WorldView } from './world.js';
 import {PROFILE_ANGLES} from './profile-camera.js';
 import {SIGNATURE_POSES} from './character-animation.js';
+import {loadBenchmarkModels,BENCHMARK_DESIGNS} from './benchmark-models.js';
 
 const main=document.getElementById('main');
 const state={world:null,user:null,csrf:'',favourites:new Set(),view:null,region:'all',series:'all',query:'',accountMode:'login',pending:null,route:0,quality:window.matchMedia('(max-width: 700px)').matches?'low':'standard'};
@@ -16,6 +17,7 @@ async function api(path,method='GET',data){
 function footer(){return '<footer class="site-footer"><span>✧ VEYRA · THE LANTERN ISLES</span><span>An original world. Stories to discover. Room for you.</span></footer>';}
 
 function portrait(c){
+  if(BENCHMARK_DESIGNS.has(c.design))return `<img loading="lazy" src="/static/characters/${c.id}-benchmark.png" alt="Blender mesh preview of ${esc(c.name)}; open to inspect in 3D" width="300" height="460">`;
   if(c.series)return `<img loading="lazy" src="/static/characters/${c.id}.svg" alt="3D model preview of ${esc(c.name)}; open to rotate and zoom" width="300" height="320">`;
   const hair=c.silhouette===0?`<path d="M75 73 76 40 91 61 105 29 119 61 136 43 140 80" fill="${c.hair}"/>`:c.silhouette===1?`<circle cx="68" cy="87" r="18" fill="${c.hair}"/><circle cx="145" cy="87" r="18" fill="${c.hair}"/>`:c.silhouette===2?`<path d="M53 74 106 13 158 74Z" fill="${c.accent}"/>`:c.silhouette===4?`<path d="M65 58H145V80H65Z" fill="${c.color}"/><path d="M49 76H163V87H49Z" fill="${c.accent}"/>`:'';
   const symbols={lantern:'✧',compass:'◇',sail:'△',bell:'♧',book:'▤',wings:'⋈',satchel:'□',hammer:'⊥',ribbon:'∞',goggles:'◎',staff:'✦',flower:'✿',crystal:'♦'};
@@ -34,6 +36,7 @@ function qualityControl(){return `<label class="quality-control">Quality <select
 
 async function mountWorld(host,options={}) {
   const route=state.route;let view;
+  const controller=new AbortController();state.modelAbort=controller;
   host.setAttribute('aria-busy','true');
   host.innerHTML='<div class="viewer-status" role="status"><span class="loading-ring" aria-hidden="true"></span><strong>Preparing your 3D view…</strong><p>Building the model and starting graphics.</p></div>';
   const showError=error=>{
@@ -49,6 +52,9 @@ async function mountWorld(host,options={}) {
   await new Promise(resolve=>requestAnimationFrame(()=>setTimeout(resolve,0)));
   if(route!==state.route||!host.isConnected)return;
   try{
+    const loading=host.querySelector('.viewer-status p');if(loading)loading.textContent='Downloading the detailed model and preparing graphics…';
+    await loadBenchmarkModels(options.profile?[options.character]:state.world.characters,controller.signal);
+    if(route!==state.route||!host.isConnected)return;
     view=new WorldView(host,state.world,{...options,quality:state.quality,onReady:()=>{
       if(route!==state.route||!host.isConnected)return;
       host.setAttribute('aria-busy','false');host.querySelector('.viewer-status')?.remove();
@@ -104,7 +110,7 @@ async function characterPage(id){
   const c=state.world.characters.find(c=>c.id===id);if(!c){main.innerHTML='<div class="page"><h1>This resident is not in the atlas.</h1><a class="button" href="/characters">Back to characters</a></div>';return;}
   const r=region(c.region),saved=state.favourites.has(c.id);
   document.title=`${c.name} — Veyra`;
-  main.innerHTML=`<div class="page"><a class="back" href="/characters">← All characters</a><div class="detail-grid"><div class="model-wrap"><div id="character-model" class="model-view"></div><span class="model-label">3D MODEL · DRAG IN ANY DIRECTION · SCROLL / PINCH TO ZOOM</span><div class="model-controls" role="group" aria-label="3D camera views">${PROFILE_ANGLES.map(angle=>`<button class="button small" data-angle="${angle}" aria-pressed="${angle==='front'}">${angle[0].toUpperCase()+angle.slice(1)}</button>`).join('')}<button class="button small" id="model-motion">Auto rotate</button><button class="button small" id="model-reset">Reset camera</button><button class="button small" id="model-fullscreen" aria-expanded="false">Expand viewer</button></div><div class="model-settings">${qualityControl()}${c.series?`<label>Pose <select id="model-pose"><option value="signature">${esc(SIGNATURE_POSES[c.design]?.label||'Signature')}</option><option value="neutral">Neutral stance</option></select></label><label>Animation <select id="model-animation"><option value="idle">Breathe &amp; blink</option><option value="walk">Walk in place</option><option value="still">Still</option></select></label>`:''}<label>Background <select id="model-background"><option value="studio">Studio</option><option value="white">Light</option><option value="night">Dark</option></select></label></div></div><article class="detail-info"><span class="eyebrow">${esc(c.series||r.name)} · ${c.series?'ANIME GUEST':'THE LANTERN ISLES'}</span><h1>${esc(c.name)}</h1><p class="role">${esc(c.role)}</p><p class="personality">${esc(c.personality)}</p><h2>${c.series?'About this character':'A life between the clouds'}</h2><p>${esc(c.story)}</p><div class="quest"><span class="eyebrow">A WISH FOR TOMORROW</span><p>${esc(c.quest)}</p></div><div class="actions"><button class="button primary" data-favourite="${c.id}">${saved?'♥ Saved to favourites':'♡ Save to favourites'}</button><a class="button" href="/?meet=${c.id}">Find in the world ↗</a></div><p class="footnote">${c.series?'Unofficial fan interpretation from '+esc(c.series)+'.':'An original resident of Veyra.'} A stylised procedural 3D model, with geometry on every side. Anime guests have articulated mesh groups, signature poses and procedural animation. These remain stylised fan models, without cinematic facial animation or downloaded game rigs.</p></article></div><section class="subsection"><div class="page-head"><div><span class="eyebrow">NEIGHBOURS &amp; KINDRED SPIRITS</span><h2>More voices from ${esc(r.name)}.</h2></div><a class="button small" href="/characters">Meet everyone ↗</a></div><div class="catalogue">${state.world.characters.filter(x=>x.region===c.region&&x.id!==id).slice(0,4).map(card).join('')}</div></section>${footer()}</div>`;
+  main.innerHTML=`<div class="page"><a class="back" href="/characters">← All characters</a><div class="detail-grid"><div class="model-wrap"><div id="character-model" class="model-view"></div><span class="model-label">3D MODEL · DRAG IN ANY DIRECTION · SCROLL / PINCH TO ZOOM</span><div class="model-controls" role="group" aria-label="3D camera views">${PROFILE_ANGLES.map(angle=>`<button class="button small" data-angle="${angle}" aria-pressed="${angle==='front'}">${angle[0].toUpperCase()+angle.slice(1)}</button>`).join('')}<button class="button small" id="model-motion">Auto rotate</button><button class="button small" id="model-reset">Reset camera</button><button class="button small" id="model-fullscreen" aria-expanded="false">Expand viewer</button></div><div class="model-settings">${qualityControl()}${c.series?`<label>Pose <select id="model-pose"><option value="signature">${esc(SIGNATURE_POSES[c.design]?.label||'Signature')}</option><option value="neutral">Neutral stance</option></select></label><label>Animation <select id="model-animation"><option value="idle">Breathe &amp; blink</option><option value="walk">Walk in place</option><option value="still">Still</option></select></label>`:''}<label>Background <select id="model-background"><option value="studio">Studio</option><option value="white">Light</option><option value="night">Dark</option></select></label></div></div><article class="detail-info"><span class="eyebrow">${esc(c.series||r.name)} · ${c.series?'ANIME GUEST':'THE LANTERN ISLES'}</span><h1>${esc(c.name)}</h1><p class="role">${esc(c.role)}</p><p class="personality">${esc(c.personality)}</p><h2>${c.series?'About this character':'A life between the clouds'}</h2><p>${esc(c.story)}</p><div class="quest"><span class="eyebrow">A WISH FOR TOMORROW</span><p>${esc(c.quest)}</p></div><div class="actions"><button class="button primary" data-favourite="${c.id}">${saved?'♥ Saved to favourites':'♡ Save to favourites'}</button><a class="button" href="/?meet=${c.id}">Find in the world ↗</a></div><p class="footnote">${c.series?'Unofficial fan interpretation from '+esc(c.series)+'.':'An original resident of Veyra.'} A stylised procedural 3D model, with geometry on every side. Naruto and Luffy use new Blender benchmark meshes awaiting art approval. Other anime guests retain their current stylised models. All anime guests have articulated mesh groups, signature poses and procedural animation. These remain stylised fan models, without cinematic facial animation or downloaded game rigs.</p></article></div><section class="subsection"><div class="page-head"><div><span class="eyebrow">NEIGHBOURS &amp; KINDRED SPIRITS</span><h2>More voices from ${esc(r.name)}.</h2></div><a class="button small" href="/characters">Meet everyone ↗</a></div><div class="catalogue">${state.world.characters.filter(x=>x.region===c.region&&x.id!==id).slice(0,4).map(card).join('')}</div></section>${footer()}</div>`;
   const modelHost=document.getElementById('character-model');
   await mountWorld(modelHost,{profile:true,character:c});
   if(!modelHost.isConnected)return;
@@ -163,7 +169,7 @@ function accountPage(){
 }
 
 function render(){
-  state.viewerCleanup?.();state.viewerCleanup=null;state.route++;state.view?.dispose();state.view=null;nav();document.title='Veyra — The Lantern Isles';
+  state.modelAbort?.abort();state.modelAbort=null;state.viewerCleanup?.();state.viewerCleanup=null;state.route++;state.view?.dispose();state.view=null;nav();document.title='Veyra — The Lantern Isles';
   const path=location.pathname,params=new URLSearchParams(location.search);
   if(path==='/'){worldPage(params.get('meet'),params.get('region'));}
   else if(path==='/characters')catalogue();
