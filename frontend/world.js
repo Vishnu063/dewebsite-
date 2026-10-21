@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { makeCharacter, piece, material } from './models.js';
 import { BRIDGES, buildings, walkable } from './layout.js';
+import {profileCamera} from './profile-camera.js';
 
 export class WorldView {
   constructor(host, world, options={}) {
@@ -20,13 +21,14 @@ export class WorldView {
     this.scene.add(new THREE.HemisphereLight('#fff7e7','#657987',2.1));
     const sun=new THREE.DirectionalLight('#fff2d7',2.4);sun.position.set(-40,90,40);this.scene.add(sun);
     this.controls=new OrbitControls(this.camera,this.renderer.domElement);
-    this.controls.enableDamping=true;this.controls.dampingFactor=.07;this.controls.maxPolarAngle=Math.PI*.47;
+    this.controls.enableDamping=true;this.controls.dampingFactor=.07;this.controls.minPolarAngle=this.profile?.001:0;this.controls.maxPolarAngle=this.profile?Math.PI-.001:Math.PI*.47;
     this.controls.minDistance=this.profile?3.8:7;this.controls.maxDistance=this.profile?13:290;
     this.controls.enablePan=!this.profile;this.controls.target.set(0,this.profile?1.25:0,0);
     this.actors=[];this.obstacles=[];
     if(this.profile) {
       const actor=makeCharacter(options.character);this.scene.add(actor);this.actors.push(actor);
-      const pedestal=piece(this.scene,'cylinder','#d3d9cd',[0,-.15,0],[1.55,.25,1.55]);
+      this.profileBounds=new THREE.Box3().setFromObject(actor);
+      this.profileAngle='front';
       this.camera.position.set(4.2,2.7,5.8);
       this.controls.autoRotate=this.motion;this.controls.autoRotateSpeed=.65;
     } else {
@@ -121,6 +123,16 @@ export class WorldView {
     const width=this.host.clientWidth,height=this.host.clientHeight;
     if(!width||!height)return;
     this.camera.aspect=width/height;this.camera.fov=this.profile?42:(width/height<.85?62:42);this.camera.updateProjectionMatrix();this.renderer.setSize(width,height,false);
+    if(this.profile)this.setProfileAngle(this.profileAngle,false);
+  }
+  setProfileAngle(angle,pause=true) {
+    if(!this.profile)return;
+    const view=profileCamera(this.profileBounds,angle,this.camera.aspect,this.camera.fov);
+    this.profileAngle=angle;this.destination=null;
+    this.camera.position.copy(view.position);this.controls.target.copy(view.target);
+    this.controls.minDistance=Math.max(.8,view.distance*.32);this.controls.maxDistance=view.distance*2.5;
+    if(pause){this.motion=false;this.controls.autoRotate=false;}
+    this.camera.lookAt(view.target);this.controls.update();
   }
   go(position,target) {this.destination={position:new THREE.Vector3(...position),target:new THREE.Vector3(...target)};}
   overview() {

@@ -59,6 +59,12 @@ def build():
             skin=['#e7b992','#b77f60','#f0cfae','#8b5c46','#d5a27d'][index%5],silhouette=index%5,
             x=round(region['x']+13*math.cos(angle),3),z=round(region['z']+13*math.sin(angle),3)))
     characters[-1].update(color='#759e96',hair='#eee1c5',accent='#e5a661',silhouette=1,skin='#d5a27d')
+    # Keep the 31 original residents unchanged; visitors occupy a second ring.
+    visitors=json.loads((Path(__file__).resolve().parents[1]/'data/anime.json').read_text())
+    for index,c in enumerate(visitors):
+        r=regions[index%3];angle=(index//3)*math.tau/7+.4
+        c.update(region=r['id'],x=round(r['x']+8.8*math.cos(angle),3),z=round(r['z']+8.8*math.sin(angle),3))
+    characters.extend(visitors)
     world=dict(name='Veyra',subtitle='The Lantern Isles',regions=regions,characters=characters,
         history=[dict(year='Year 0',title='The Quiet Sundering',text='The old land rose into the sky, separating villages without erasing their memories. Nobody in Veyra agrees on what caused it. The first surviving records describe neighbours building ropes between their drifting gardens.'),
         dict(year='Year 18',title='A light in the cloud-sea',text='The people of Sunmere raised a lantern for anyone who could no longer see home. Its keeper promised that no arriving traveller would be turned away.'),

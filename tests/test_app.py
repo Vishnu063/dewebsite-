@@ -93,19 +93,34 @@ class WebsiteTests(unittest.TestCase):
         self.assertEqual(self.client.get('/characters/not-a-real-person').status_code,404)
         self.assertEqual(self.client.get('/api/characters/not-a-real-person').status_code,404)
         self.assertEqual(self.client.get('/unknown-page').status_code,404)
-        self.assertEqual(self.client.get('/health').json,dict(status='ok',characters=31))
+        self.assertEqual(self.client.get('/health').json,dict(status='ok',characters=51))
 
     def test_original_world_inventory(self):
-        self.assertEqual(len(CHARACTERS),31)
+        self.assertEqual(len(CHARACTERS),51)
         self.assertEqual(CHARACTERS['aela-venn']['role'],'Cloud gardener')
         response=self.client.get('/characters/aela-venn')
         self.assertEqual(response.status_code,200);response.close()
-        self.assertEqual(len({c['name'] for c in CHARACTERS.values()}),31)
-        self.assertEqual(len({c['story'] for c in CHARACTERS.values()}),31)
+        self.assertEqual(len({c['name'] for c in CHARACTERS.values()}),51)
+        self.assertEqual(len({c['story'] for c in CHARACTERS.values()}),51)
         self.assertEqual(len(WORLD['regions']),3)
-        for r in WORLD['regions']:self.assertEqual(sum(c['region']==r['id'] for c in CHARACTERS.values()),11 if r['id']=='sunmere' else 10)
+        for r in WORLD['regions']:self.assertEqual(sum(c['region']==r['id'] and not c.get('series') for c in CHARACTERS.values()),11 if r['id']=='sunmere' else 10)
         response=self.client.get('/api/world')
-        self.assertEqual(response.status_code,200);self.assertEqual(len(response.json['characters']),31)
+        self.assertEqual(response.status_code,200);self.assertEqual(len(response.json['characters']),51)
+
+    def test_anime_profiles_previews_and_private_favourites(self):
+        self.register()
+        guests=[c for c in CHARACTERS.values() if c.get('series')]
+        self.assertEqual(len(guests),20)
+        for c in guests:
+            response=self.client.get('/characters/'+c['id'])
+            self.assertEqual(response.status_code,200);response.close()
+            self.assertEqual(self.client.get('/api/characters/'+c['id']).json['name'],c['name'])
+            response=self.client.get('/static/characters/'+c['id']+'.svg')
+            self.assertEqual(response.status_code,200);self.assertIn(b'<polygon',response.data);response.close()
+            self.assertEqual(self.post('/api/favourites/'+c['id']).status_code,200)
+        self.assertEqual(set(self.client.get('/api/favourites').json),{c['id'] for c in guests})
+        other=self.app.test_client()
+        self.assertEqual(other.get('/api/favourites').status_code,401)
 
     def test_duplicate_user_and_unknown_favourite(self):
         self.register()
@@ -114,3 +129,4 @@ class WebsiteTests(unittest.TestCase):
 
 
 if __name__=='__main__':unittest.main()
+

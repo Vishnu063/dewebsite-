@@ -1,6 +1,6 @@
 # Veyra — The Lantern Isles
 
-A six-page website with an original explorable 3D world, **31 original characters**, real user accounts and private favourites. Built in the `dewebsite-` repository for your own deployment and DevOps practice. No hosting, Docker, infrastructure, or CI/CD configuration is included.
+A six-page website with an original explorable 3D world, **51 characters: 31 original residents and 20 anime guests**, real user accounts and private favourites. Built in the `dewebsite-` repository for your own deployment and DevOps practice. No hosting, Docker, infrastructure, or CI/CD configuration is included.
 
 ## Meet Aela Venn
 
@@ -14,20 +14,49 @@ Aela catches stray clouds in woven baskets and waters the harbour gardens with t
 
 This portrait is a static vector rendering of Aela's actual Three.js character model. Find her in the catalogue at `/characters/aela-venn`, or meet her in Sunmere. Regenerate the portrait with `node scripts/render-character.mjs` after building the character data.
 
+## Naruto and One Piece — 20 new 3D models
+
+Open **Characters**, choose **Naruto** or **One Piece**, then select a character. Drag to rotate freely, scroll/pinch to zoom, or use **Front / Back / Left / Right / Top / Bottom**. Pause or enable auto rotation. The profile viewer has no ground plane hiding the underside.
+
+These are **simple stylised, unofficial fan models**, not detailed replicas or rigged game assets. Each has a distinct costume and geometry: Naruto's whiskers and headband, Gaara's rear gourd, Zoro's three swords, Usopp's long nose, Chopper's antlers, Franky's mechanical arms, Brook's skeleton and Jinbe's wide fish-man form.
+
+The images below are **static renders of those 3D meshes**. GitHub README displays the images; full interactive rotation is available in the running website. Naruto and One Piece characters/designs belong to their respective rights holders; this project is unaffiliated. The original Veyra cast is listed separately in the collection filter.
+
+| Naruto | One Piece |
+| --- | --- |
+| **Naruto Uzumaki**<br>![Naruto Uzumaki 3D model](static/characters/naruto-uzumaki.svg) | **Monkey D. Luffy**<br>![Monkey D. Luffy 3D model](static/characters/monkey-d-luffy.svg) |
+| **Sasuke Uchiha**<br>![Sasuke Uchiha 3D model](static/characters/sasuke-uchiha.svg) | **Roronoa Zoro**<br>![Roronoa Zoro 3D model](static/characters/roronoa-zoro.svg) |
+| **Sakura Haruno**<br>![Sakura Haruno 3D model](static/characters/sakura-haruno.svg) | **Nami**<br>![Nami 3D model](static/characters/nami.svg) |
+| **Kakashi Hatake**<br>![Kakashi Hatake 3D model](static/characters/kakashi-hatake.svg) | **Usopp**<br>![Usopp 3D model](static/characters/usopp.svg) |
+| **Hinata Hyuga**<br>![Hinata Hyuga 3D model](static/characters/hinata-hyuga.svg) | **Sanji**<br>![Sanji 3D model](static/characters/sanji.svg) |
+| **Itachi Uchiha**<br>![Itachi Uchiha 3D model](static/characters/itachi-uchiha.svg) | **Tony Tony Chopper**<br>![Tony Tony Chopper 3D model](static/characters/tony-tony-chopper.svg) |
+| **Gaara**<br>![Gaara 3D model](static/characters/gaara.svg) | **Nico Robin**<br>![Nico Robin 3D model](static/characters/nico-robin.svg) |
+| **Shikamaru Nara**<br>![Shikamaru Nara 3D model](static/characters/shikamaru-nara.svg) | **Franky**<br>![Franky 3D model](static/characters/franky.svg) |
+| **Rock Lee**<br>![Rock Lee 3D model](static/characters/rock-lee.svg) | **Brook**<br>![Brook 3D model](static/characters/brook.svg) |
+| **Jiraiya**<br>![Jiraiya 3D model](static/characters/jiraiya.svg) | **Jinbe**<br>![Jinbe 3D model](static/characters/jinbe.svg) |
+
+Rebuild the guest data and previews after changing their designs:
+
+```bash
+python3 scripts/create_world.py
+node scripts/render-character.mjs --anime
+npm run build
+```
+
 ## What is in the website
 
 | Page | Features |
 | --- | --- |
-| Explore `/` | Three connected floating islands, skybridges, buildings, landmarks, 31 residents, walking, orbit/zoom, region travel and a guided tour |
-| Characters `/characters` | All 31 profiles, original illustrated portraits, island filters, search and favourite buttons |
+| Explore `/` | Three connected floating islands, skybridges, buildings, landmarks, 51 characters, walking, orbit/zoom, region travel and a guided tour |
+| Characters `/characters` | All 51 profiles, 3D model previews for anime guests, collection/island filters, search and favourite buttons |
 | Character `/characters/ari-solwen` | Rotatable 3D model, individual story, personality, role, ambition and a link to their world location |
 | Chronicle `/history` | Three region histories and six eras of original world lore |
 | Favourites `/favourites` | A private, persistent collection for the signed-in account |
 | Account `/account` | Registration, sign-in, account summary and sign-out |
 
-**Sunmere** is a warm lantern harbour, **Glasswood** a forest that remembers lost paths, and **Cinderpeak** a crystal-and-forge settlement. Sunmere has eleven residents; Glasswood and Cinderpeak each have ten. Names, stories, palettes, silhouettes and role-specific props were created for this project, without intentionally copying existing anime characters. No existing anime footage, models, images, articles or voices are bundled.
+**Sunmere** is a warm lantern harbour, **Glasswood** a forest that remembers lost paths, and **Cinderpeak** a crystal-and-forge settlement. The original cast has eleven residents in Sunmere and ten each in Glasswood and Cinderpeak. Twenty additional Naruto and One Piece fan characters visit the isles on a separate inner ring. The original cast and world lore remain unchanged. All meshes are built in code; no downloaded anime models, footage, textures or voices are bundled.
 
-The models use simple, stylised 3D shapes with distinct hair, clothing colours and accessories. This is a compact navigable browser world, **not a detailed anime game, an unlimited open world, or a skeletal-animation project**. Character cards use original SVG illustrations; their profile and world views use actual Three.js meshes.
+The models use simple, stylised 3D shapes with distinct hair, clothing colours and accessories. This is a compact navigable browser world, **not a detailed anime game, an unlimited open world, or a skeletal-animation project**. Original-character cards use SVG illustrations; anime cards use static snapshots of their actual meshes. Profile and world views render real Three.js geometry.
 
 ## Run locally
 
@@ -95,8 +124,8 @@ npm run build
 
 Validation performed locally:
 
-- Eight backend tests: real registration/login/logout, password hashing and session rotation, wrong passwords, expired sessions, duplicate names, attempt limits, CSRF/origin rejection, persistent private favourites across separate users and app restarts, six page routes, malformed/oversized input and the 31-character catalogue.
-- Four scene/control tests: all 31 models have finite geometry and distinct design definitions; world construction places every resident; island/bridge connectivity, void boundaries and building collisions pass; guided tour start/pause works. The constructed scene has about 1,091 meshes and 120,000 triangles.
+- Nine backend tests (including all 20 guest routes, preview assets and favourites): real registration/login/logout, password hashing and session rotation, wrong passwords, expired sessions, duplicate names, attempt limits, CSRF/origin rejection, persistent private favourites across separate users and app restarts, six page routes, malformed/oversized input and the 51-character catalogue.
+- Scene/control tests also cover the exact 20-guest roster, distinct mesh geometry, six camera angles, portrait assets and collision-free guest placement. Baseline checks: all 51 models have finite geometry and distinct design definitions; world construction places every resident; island/bridge connectivity, void boundaries and building collisions pass; guided tour start/pause works. Scene complexity remains bounded by the automated mesh/triangle budget. Browser/WebGL appearance and touch interaction have not been tested in this environment; the README previews are rendered offline from the actual geometry.
 - The production frontend bundle builds successfully at approximately 537 KiB before compression.
 
 **Verification limit:** this environment has no supported browser-control capability for visual/WebGL QA. The scene was constructed and checked using real Three.js objects, not rendered in a browser here. Desktop/mobile camera composition, touch interaction and actual graphics performance need a browser trial. No EC2 deployment, public account security audit or 8 GB client-memory benchmark is claimed.
